@@ -1,0 +1,7 @@
+# 초기파일
+.python-version
+.vscode
+__pycache__
+
+# 환경변수
+.env
