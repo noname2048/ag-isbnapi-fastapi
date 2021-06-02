@@ -2,6 +2,7 @@
 .python-version
 .vscode
 __pycache__
+.ipynb_checkpoints
 
 # 환경변수
 .env
