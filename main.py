@@ -6,6 +6,11 @@ import xml.etree.ElementTree as elemTree
 import xmltodict
 from PIL import Image
 from io import BytesIO
+from pymongo import MongoClient
+
+my_client = MongoClient("mongodb://root:example@mongo:27017")
+
+print(my_client.list_database_names())
 
 load_dotenv()
 app = FastAPI()
@@ -39,4 +44,10 @@ async def isbn(isbn: str):
     img = Image.open(BytesIO(bytes_img))
     img.save(f"thumbnails/{isbn}.jpg")
 
+    mydb = my_client["test"]
+    mycol = mydb['book']
+    x = mycol.insert_one(data)
+    print(x.inserted_id)
+    data["inserted_id"] = x.inserted_id
+    
     return data
