@@ -40,6 +40,7 @@ async def isbn(isbn: str):
     )
 
     tree = elemTree.fromstring(r.text)
+    tree.find('channel/item')
     data = dict()
     for elem in list(tree.find('channel/item')):
         data[elem.tag] = elem.text
