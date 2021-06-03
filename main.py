@@ -7,10 +7,14 @@ import xmltodict
 from PIL import Image
 from io import BytesIO
 from pymongo import MongoClient
+from pydantic import BaseModel
+from fastapi.responses import JSONResponse
+import json
 
-my_client = MongoClient("mongodb://root:example@mongo:27017")
-
-print(my_client.list_database_names())
+client = MongoClient("mongodb://root:example@mongo:27017")
+print(client.list_database_names())
+db = client["api"]
+books_collection = db.book
 
 load_dotenv()
 app = FastAPI()
@@ -19,9 +23,12 @@ app = FastAPI()
 async def root():
     return {"message": "Hello World"}
 
-
 @app.get("/isbn/{isbn}")
 async def isbn(isbn: str):
+
+    if (ret := books_collection.find_one({"isbn": isbn})) is not None:
+        ret.pop("_id")
+        return ret
 
     r: requests.Response = requests.get(
         "https://openapi.naver.com/v1/search/book_adv.xml",
@@ -44,10 +51,16 @@ async def isbn(isbn: str):
     img = Image.open(BytesIO(bytes_img))
     img.save(f"thumbnails/{isbn}.jpg")
 
-    mydb = my_client["test"]
-    mycol = mydb['book']
-    x = mycol.insert_one(data)
-    print(x.inserted_id)
-    data["inserted_id"] = x.inserted_id
-    
+    books_collection.insert_one(data)
+
     return data
+
+
+@app.get("/test")
+async def test():
+    db = client["api"]
+    mycol = db.book
+    x = mycol.find_one({"isbn": "9791158392239"})
+    x.pop("_id")
+
+    return x
