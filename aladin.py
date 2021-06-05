@@ -5,7 +5,7 @@ Custom Aladin BookStore API Parser
 알라딘 api를 이용하여 isbn(10자리, 13자리) 검색을 통해 책 정보를 가져옵니다.
 기본 사용법:
 
->> adadin.isbn_dict()
+>> adadin.isbn_requests()
 
 개요:
 isbn requests 로 요청하기
@@ -26,33 +26,31 @@ from dotenv import load_dotenv
 import xml.etree.ElementTree as elemTree
 from pathlib import Path
 from PIL import Image
+import re
+import json
 
 load_dotenv()
 
+class AladinApiException(Exception):
+    def __init__(self, msg):
+        self.msg = msg
 
-def aladin_parse(res: requests.Response) -> Dict:
-    """알리딘 파이프라인 중 response(xml)을 Dict 로 바꾸는 과정
+    def __str__(self):
+        return f"[알라딘 API ERROR]: {self.msg}"
 
-    """
-    ret = dict()
-
-    tree = elemTree.fromstring(res.text)
-    if tree.find("error"):
-        return ret
-
-    for elem in tree.find("object/item"):
-        ret[elem.tag] = elem.text
-
-    return ret
 
 def download_thumbnail(url: str, isbn13: str) -> Path:
+    """이미지 url을 thumnail 폴더에 저장하는 함수
 
+    :param
+    """
     res = requests.get(url)
     bytes_img = res.content
     img = Image.open(BytesIO(bytes_img))
     img.save(f"thumbnails/{isbn13}.jpg")
 
     return Path(__file__).resolve().parent / "thumbnails" / isbn13 / ".jpg"
+
 
 def isbn_dict(isbn_str: str) -> Dict:
 
@@ -63,6 +61,8 @@ def isbn_dict(isbn_str: str) -> Dict:
         isbn_type = "ISBN"
     elif str_len == 13:
         isbn_type = "ISBN13"
+    else:
+        raise AladinApiException("isbn string 길이가 맞지 않습니다.")
 
     res: requests.Response = requests.post(
         url,
@@ -71,15 +71,17 @@ def isbn_dict(isbn_str: str) -> Dict:
             "itemIdType": isbn_type,
             "ItemId": isbn_str,
             "Cover": "Big",
+            "output": "js",
         },
     )
 
     if res.status_code != 200:
-        return {}
+        raise AladinApiException("알라딘 API를 정상적으로 이용할 수 없습니다.")
 
-    res_dict: Dict = aladin_parse(res)
-    if not res_dict:
-        return {}
+    if re.findall("(errorCode|errorMessage)", res.text):
+        raise AladinApiException("상품정보가 알라딘에 존재하지 않습니다.")
 
-    download_thumbnail(res["cover"], res["isbn13"])
+    data: Dict = json.loads(res.text[:-1])["item"][0]
+    download_thumbnail(data["cover"], data["isbn13"])
 
+    return data
