@@ -3,6 +3,31 @@
 쿼리로 isbn을 날리면 네이버책 API를 통해 정보를 검색해서
 캐싱한뒤, 캐싱을 이용해 리턴하는 API
 
+## 폴더트리정렬
+- 내가 작성한 프로젝트의 폴더 트리 이유를 적어 놓으면 나중에 참조하기 편할것 같아서.
+```bash
+├── .gitignore # 깃 이그노어 파일
+├── Dockerfile 
+├── README.md # 현재 읽고 있는 파일
+├── aladin.py
+├── docker-build-image.sh
+├── docker-compose.yml
+├── jupyter_research
+│   ├── aladin.ipynb
+│   ├── mongo.ipynb
+│   ├── naver.ipynb
+│   └── thumb.jpg
+├── main.py # 메인앱
+├── poetry.lock # poetry 상세 버전 기술 (의존성에 대한 풀이)
+├── pyproject.toml # (pip freeze) requirement.txt 와 같은 역할
+└── thumbnail # 썸네일 저장 폴더, 썸네일은 제목은 isbn 13 자리로 저장
+    ├── 9791158392239.jpg
+    └── 9791186179420.jpg
+```
+## 이 프로젝트를 오랜만에 방문했을때 해야할것
+- poetry update
+- mongodb connection 확인
+
 ## 목적
 
 fastapi 연습, mongodb(key-document NoSQL) 연습
