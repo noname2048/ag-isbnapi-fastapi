@@ -17,7 +17,7 @@ async def root():
     return {"message": "Hello World"}
 
 @app.get("/isbn/{isbn}")
-async def isbn(isbn: str):
+async def get_bookinfo(isbn: str):
 
     ret = books_collection.find_one({"isbn": isbn})
     if ret is not None:
