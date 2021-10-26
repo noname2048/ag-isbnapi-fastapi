@@ -14,10 +14,10 @@
 ├── docker-build-image.sh
 ├── docker-compose.yml
 ├── jupyter_research
-│   ├── aladin.ipynb
-│   ├── mongo.ipynb
-│   ├── naver.ipynb
-│   └── thumb.jpg
+│   ├── aladin.ipynb  # 알라딘 API 사용 연습
+│   ├── mongo.ipynb  # mongodb 연습
+│   ├── naver.ipynb  # naver API 사용 연습
+│   └── thumb.jpg  # API에서 나온 썸네일 (추후 삭제)
 ├── main.py # 메인앱
 ├── poetry.lock # poetry 상세 버전 기술 (의존성에 대한 풀이)
 ├── pyproject.toml # (pip freeze) requirement.txt 와 같은 역할
