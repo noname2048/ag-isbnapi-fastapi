@@ -1,8 +1,16 @@
-# 초기파일
+
+# pyenv local versions
 .python-version
+
+# vscode, pycharm
 .vscode
+.idea
+
+# python cache
 __pycache__
+
+# notebooks
 .ipynb_checkpoints
 
-# 환경변수
+# secret_keys for api
 .env
