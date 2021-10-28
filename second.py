@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Path, Query, Body
+from fastapi import FastAPI, Path, Query, Body, Cookie, Header
 from typing import Optional, List
 from pydantic import BaseModel, Field
 import datetime
@@ -47,11 +47,18 @@ async def search(
 class RequestBookInfo(BaseModel):
     isbn: str = Field(..., regex=r"^[0-9]{13}$", example="9788966261840")
     title: Optional[str] = Field(None, example="Two Scopoops of Django")
-    date: datetime.datetime = Field(None, example=datetime.datetime.now)
+    date: datetime.datetime = Field(None, example=datetime.datetime.now())
 
 
-@app.get("/request")
-async def request_book(isbn: List[str] = Query(..., regex="^[0-9]{13}$")):
+class ResponseBookInfo(BaseModel):
+    isbn: str = Field(..., example="9788966261840")
+    title: str = Field(..., example="Two Scopoops of Django")
+
+
+@app.get("/request", response_model=ResponseBookInfo)
+async def request_book(
+    isbn: List[str] = Query(..., regex="^[0-9]{13}$", example="9788966261840")
+):
     """한개의 isbn 혹은 여러개의 isbn을 get, query로 받습니다
     받은 isbn은 개인 DB에 없으면 알라딘API를 이용해 정보를 등록합니다.
     """
@@ -60,7 +67,9 @@ async def request_book(isbn: List[str] = Query(..., regex="^[0-9]{13}$")):
 
 
 @app.post("/request")
-async def request_book(book: List[RequestBookInfo] = Body(...)):
+async def request_book(
+    book: List[RequestBookInfo] = Body(..., example={"isbn": "9788966261840"})
+):
     """처리할 isbn정보를 post로 받는 함수
     받은 isbn은 개인 DB에 없으면 알라딘API를 이용해 정보를 등록합니다.
     # TODO: 어떻게 여러개의 isbn을 받을 것인지 연구
