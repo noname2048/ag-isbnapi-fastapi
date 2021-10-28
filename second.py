@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Path, Query
+from fastapi import FastAPI, Path, Query, Body, Field
 from typing import Optional
 from pydantic import BaseModel
 import datetime
@@ -13,14 +13,24 @@ async def root():
 
 # path parameter
 @app.get("/isbn/{isbn}")
-async def search_isbn(isbn: int = Path(..., title="book isbn, length will be 13")):
+async def search_isbn(
+    isbn: str = Path(
+        ..., title="book isbn, length will be 13", min_length=13, max_length=13
+    )
+):
     return {"isbn": isbn}
 
 
 # query parameter
 @app.get("/search")
 async def search(
-    isbn: Optional[int],
+    isbn: Optional[str] = Query(
+        None,
+        title="isbn 넘버",
+        description="책을 isbn으로 검색합니다. 13자리 isbn을 사용합니다.",
+        min_legnth=13,
+        max_length=13,
+    ),
     title: Optional[str] = Query(
         None,
         min_length=1,
@@ -35,7 +45,7 @@ async def search(
 
 # meet pydantic
 class RequestBookInfo(BaseModel):
-    isbn: int
+    isbn: str = Field(..., regex=r"^[0-9]{13}$")
     title: Optional[str] = None
     date: datetime.datetime = None
 
