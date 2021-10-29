@@ -62,6 +62,9 @@ async def request_book(
     """한개의 isbn 혹은 여러개의 isbn을 get, query로 받습니다
     받은 isbn은 개인 DB에 없으면 알라딘API를 이용해 정보를 등록합니다.
     """
+    # 몽고DB 연결
+    # isbn으로 등록된 책이 있는지 확인하고
+    # 없는 경우에는 API 사용
     query_books = {"q": isbn}
     return query_books
 
