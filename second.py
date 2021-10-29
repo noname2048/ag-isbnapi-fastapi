@@ -2,6 +2,7 @@ from fastapi import FastAPI, Path, Query, Body, Cookie, Header
 from typing import Optional, List
 from pydantic import BaseModel, Field
 import datetime
+from second_util import query_and_register
 
 app = FastAPI()
 
@@ -55,20 +56,23 @@ class ResponseBookInfo(BaseModel):
     title: str = Field(..., example="Two Scopoops of Django")
 
 
-@app.get("/request", response_model=ResponseBookInfo)
+# @app.get("/request", response_model=ResponseBookInfo)
+@app.get("/request")
 async def request_book(
     isbn: List[str] = Query(..., regex="^[0-9]{13}$", example="9788966261840")
 ):
     """한개의 isbn 혹은 여러개의 isbn을 get, query로 받습니다
     받은 isbn은 개인 DB에 없으면 알라딘API를 이용해 정보를 등록합니다.
     """
-    # 몽고DB 연결
-    # isbn으로 등록된 책이 있는지 확인하고
-    # 없는 경우에는 API 사용
-    query_books = {"q": isbn}
-    return query_books
+    response = {}
+    for i in isbn:
+        book, status = await query_and_register(i)
+        response[i] = [book["title"], status]
+
+    return response
 
 
+#
 @app.post("/request")
 async def request_book(
     book: List[RequestBookInfo] = Body(..., example={"isbn": "9788966261840"})
