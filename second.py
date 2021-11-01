@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Path, Query, Body, Cookie, Header
+from fastapi import FastAPI, Path, Query, Body, Cookie, Header, Form, File, UploadFile
 from typing import Optional, List
 from pydantic import BaseModel, Field
 import datetime
@@ -83,3 +83,11 @@ async def request_book(
     """
     book.date = datetime.datetime.now()
     return book
+
+
+@app.post("/login/")
+async def login(email: str = Form(...), password: str = Form(...)):
+    """유저로그인을 위한 함수
+    email과 password를 받아 처리한다
+    """
+    return {"email": email}
