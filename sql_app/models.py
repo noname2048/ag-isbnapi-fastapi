@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String
+from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, DateTime
 from sqlalchemy.orm import relationship
 
 from .engine import Base
@@ -14,7 +14,8 @@ class User(Base):
 
 
 class BookRequest(Base):
+    __tablename__ = "bookrequests"
 
     id = Column(Integer, primary_key=True, index=True)
     isbn = Column(Integer, index=True)
-    date = Column()
+    date = Column(DateTime)
