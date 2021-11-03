@@ -11,6 +11,8 @@ from pathlib import Path
 REPO_DIR = Path(__file__).parent.parent
 global_env = dotenv_values(REPO_DIR / ".env")
 
+from sql_app import models
+
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
@@ -23,12 +25,21 @@ fileConfig(config.config_file_name)
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
-target_metadata = None
+target_metadata = models.Base.metadata
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
+
+url_str = "postgresql+psycopg2://{username}:{password}@{host}:{port}/{db_name}".format(
+    username=global_env["DB_USER"],
+    password=global_env["DB_PASSWORD"],
+    host="localhost",
+    port="5432",
+    db_name=global_env["DB_NAME"],
+)
+url = config.set_main_option("sqlalchemy.url", url_str)
 
 
 def run_migrations_offline():
@@ -43,14 +54,6 @@ def run_migrations_offline():
     script output.
 
     """
-    url_str = "postgresql://{username}:{password}@{host}:{port}/{db_name}".format(
-        username=global_env["DB_USER"],
-        password=global_env["DB_PASSWORD"],
-        host="localhost",
-        port="5432",
-        db_name=global_env["DB_NAME"],
-    )
-    config.set_main_option("sqlalchemy.url", url_str)
     url = config.get_main_option("sqlalchemy.url")
     context.configure(
         url=url,
