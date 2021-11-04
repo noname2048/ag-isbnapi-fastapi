@@ -400,7 +400,7 @@ testing = ["Django (<3.1)", "colorama", "docopt", "pytest (<6.0.0)"]
 name = "jinja2"
 version = "3.0.2"
 description = "A very fast and expressive template engine."
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.6"
 
@@ -1279,7 +1279,7 @@ testing = ["pytest (>=4.6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytes
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "e71e52cc6aa5b847d7c34e8709d9eb288ab310d17d34ddac7b1fad8264cc6593"
+content-hash = "e9f6f952c20115eca63be9d06096fe860f488ad02e75cd9ead5e41fcc8713375"
 
 [metadata.files]
 alembic = [
