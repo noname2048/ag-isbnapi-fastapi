@@ -1,10 +1,16 @@
-from fastapi import FastAPI, Path, Query, Body, Cookie, Header, Form, File, UploadFile
 from typing import Optional, List
-from pydantic import BaseModel, Field
 import datetime
+
+from fastapi import FastAPI, Path, Query, Body, Cookie, Header, Form, File, UploadFile
+from fastapi.templating import Jinja2Templates
+
+from pydantic import BaseModel, Field
+
 from second_util import query_and_register
 
+
 app = FastAPI()
+templates = Jinja2Templates(directory="templates")
 
 
 @app.get("/")
@@ -91,3 +97,9 @@ async def login(email: str = Form(...), password: str = Form(...)):
     email과 password를 받아 처리한다
     """
     return {"email": email}
+
+
+@app.get("/auth/api/google")
+async def google_login_start():
+    """구글 로그인 버튼을 보여주는 페이지"""
+    return templates.TemplateResponse("google_login_button.html")
