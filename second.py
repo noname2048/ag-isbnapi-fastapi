@@ -1,15 +1,32 @@
 from typing import Optional, List
 import datetime
 
-from fastapi import FastAPI, Path, Query, Body, Cookie, Header, Form, File, UploadFile
+from fastapi import (
+    FastAPI,
+    Path,
+    Query,
+    Body,
+    Cookie,
+    Header,
+    Form,
+    File,
+    UploadFile,
+    Request,
+    status,
+)
+from fastapi.responses import Response, FileResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
+from fastapi.staticfiles import StaticFiles
 
 from pydantic import BaseModel, Field
-
 from second_util import query_and_register
 
+from dotenv import dotenv_values
 
-app = FastAPI()
+app = FastAPI(
+    title="ag-isbnapi-fastapi", description="isbn을 저장하는 마이크로서비스", version="0.0.1"
+)
+app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
 
@@ -99,7 +116,59 @@ async def login(email: str = Form(...), password: str = Form(...)):
     return {"email": email}
 
 
-@app.get("/auth/api/google")
-async def google_login_start():
+@app.get("/auth/api/v1/google/login")
+async def google_login_start(request: Request):
     """구글 로그인 버튼을 보여주는 페이지"""
-    return templates.TemplateResponse("google_login_button.html")
+    return templates.TemplateResponse("google_login_button.html", {"request": request})
+
+
+@app.get("/auth/api/v1/google/script.js")
+async def google_login_script():
+    return FileResponse("templates/script.js")
+
+
+@app.get("/auth/api/v1/google/redirected")
+async def google_login_redirected(access_token: str):
+    """구글 로그인 이후 리다이렉트 되는 페이지"""
+    return {"message": "hello"}
+
+
+def google_uri():
+    info = {
+        "client_id": "48231090303-eelp5r7prhev89t13ng9mt8f609pqqhg.apps.googleusercontent.com",
+        "redirect_uri": "http://localhost:8000/auth/api/v1/google/server/redirected",
+        "response_type": "code",
+        "scope": " ".join(
+            [
+                "https://www.googleapis.com/auth/userinfo.email",
+                "https://www.googleapis.com/auth/userinfo.profile",
+            ]
+        ),
+        "access_type": "online",
+        "state": "login_wep_app",
+        "prompt": "select_account",
+    }
+    uri = "https://accounts.google.com/o/oauth2/v2/auth"
+    query_param = "&".join([f"{k}={v}" for k, v in info.items()])
+
+    uri = f"{uri}?{query_param}"
+    return uri
+
+
+@app.get("/auth/api/v1/google/server/login")
+async def google_login_redirect():
+    # return {"message": google_uri()}
+    return RedirectResponse(google_uri())
+
+
+@app.get("/auth/api/v1/google/server/redirected")
+async def google_login_redirected(
+    state: str, code: str, scope: str, authuser: str, prompt: str
+):
+    return {
+        "state": state,
+        "code": code,
+        "scope": scope,
+        "authuser": authuser,
+        "prompt": prompt,
+    }
