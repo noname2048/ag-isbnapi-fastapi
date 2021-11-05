@@ -19,6 +19,7 @@ SQLAlchemy = "^1.4.26"
 alembic = "^1.7.4"
 psycopg2 = "^2.9.1"
 Jinja2 = "^3.0.2"
+aiofiles = "^0.7.0"
 
 [tool.poetry.dev-dependencies]
 jupyterlab = "^3.0.16"
