@@ -14,14 +14,21 @@ from fastapi import (
     Request,
     status,
 )
-from fastapi.responses import Response, FileResponse, RedirectResponse
+from fastapi.responses import Response, FileResponse, RedirectResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 
 from pydantic import BaseModel, Field
+from pydantic.errors import JsonTypeError
 from second_util import query_and_register
 
 from dotenv import dotenv_values
+import pathlib
+import aiohttp
+import requests
+
+REPO_DIR = pathlib.Path(__file__).parent
+secret_config = dotenv_values(REPO_DIR / ".env")
 
 app = FastAPI(
     title="ag-isbnapi-fastapi", description="isbn을 저장하는 마이크로서비스", version="0.0.1"
@@ -135,7 +142,7 @@ async def google_login_redirected(access_token: str):
 
 def google_uri():
     info = {
-        "client_id": "48231090303-eelp5r7prhev89t13ng9mt8f609pqqhg.apps.googleusercontent.com",
+        "client_id": secret_config["GOOGLE_OAUTH2_CLIENT_ID"],
         "redirect_uri": "http://localhost:8000/auth/api/v1/google/server/redirected",
         "response_type": "code",
         "scope": " ".join(
@@ -161,14 +168,63 @@ async def google_login_redirect():
     return RedirectResponse(google_uri())
 
 
+async def google_code_to_access_token(code: str):
+    uri = "https://oauth2.googleapis.com/token"
+    info = {
+        "client_id": secret_config["GOOGLE_OAUTH2_CLIENT_ID"],
+        "client_secret": secret_config["GOOGLE_OAUTH2_CLIENT_PASSWORD"],
+        "code": code,
+        "grant_type": "authorization_code",
+        "redirect_uri": "http://localhost:8000/auth/api/v1/google/server/token",
+    }
+
+    r = requests.post("https://oauth2.googleapis.com/token", data=info)
+    return {
+        "status_code": r.status_code,
+        "request_uri": r.request.url,
+        "request_params": r.request.body,
+    }
+    if r.status_code == status.HTTP_200_OK:
+        return r.status_code
+        data = r.json()
+        core_data = {
+            "access_token": data["access_token"],
+            "expires_in": data["expires_in"],
+            "refresh_token": data["refresh_token"],
+            "scope": data["scope"],
+            "token_type": data["token_type"],
+        }
+        return core_data
+    else:
+        return JsonTypeError(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content={"message": "로그인에 문제가 있습니다. 서버관리자에게 연락하세요"},
+        )
+
+
 @app.get("/auth/api/v1/google/server/redirected")
 async def google_login_redirected(
     state: str, code: str, scope: str, authuser: str, prompt: str
 ):
+    temp = await google_code_to_access_token(code)
     return {
         "state": state,
         "code": code,
         "scope": scope,
         "authuser": authuser,
         "prompt": prompt,
+        "uri": temp,
+    }
+
+
+@app.get("/auth/api/v1/google/server/token")
+async def google_login_token(
+    access_token, expires_in, refresh_token, scope, token_type
+):
+    return {
+        "access_token": access_token,
+        "expires_in": expires_in,
+        "refresh_token": refresh_token,
+        "scope": scope,
+        "token_type": token_type,
     }
