@@ -1,15 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document</title>
     <script defer src="script.js"></script>
-</head>
-<body>
-   <button id="auth2">
-       구글 로그인 버튼
-   </button> 
-</body>
+  </head>
+  <body>
+    <button id="auth2">구글 로그인 버튼</button>
+
+    <form action="/auth/api/v1/google/server/login" method="GET">
+      <button type="submit">벡엔드 구글 로그인</button>
+    </form>
+  </body>
 </html>
