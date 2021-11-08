@@ -151,7 +151,7 @@ def google_uri():
                 "https://www.googleapis.com/auth/userinfo.profile",
             ]
         ),
-        "access_type": "online",
+        "access_type": "offline",
         "state": "login_wep_app",
         "prompt": "select_account",
     }
@@ -175,7 +175,7 @@ async def google_code_to_access_token(code: str):
         "client_secret": secret_config["GOOGLE_OAUTH2_CLIENT_PASSWORD"],
         "code": code,
         "grant_type": "authorization_code",
-        "redirect_uri": "http://localhost:8000/auth/api/v1/google/server/token",
+        "redirect_uri": "http://localhost:8000/auth/api/v1/google/server/redirected",
     }
 
     r = requests.post("https://oauth2.googleapis.com/token", data=info)
@@ -183,6 +183,10 @@ async def google_code_to_access_token(code: str):
         "status_code": r.status_code,
         "request_uri": r.request.url,
         "request_params": r.request.body,
+        "data": r.content,
+        "request_header": r.request.headers,
+        "request_body": r.request.body,
+        "request_host": r.
     }
     if r.status_code == status.HTTP_200_OK:
         return r.status_code
@@ -207,6 +211,7 @@ async def google_login_redirected(
     state: str, code: str, scope: str, authuser: str, prompt: str
 ):
     temp = await google_code_to_access_token(code)
+    # return RedirectResponse(temp)
     return {
         "state": state,
         "code": code,
