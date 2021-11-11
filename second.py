@@ -123,20 +123,20 @@ async def login(email: str = Form(...), password: str = Form(...)):
     return {"email": email}
 
 
-@app.get("/auth/api/v1/google/login")
+@app.get("/auth/google/login")
 async def google_login_start(request: Request):
     """구글 로그인 버튼을 보여주는 페이지"""
     return templates.TemplateResponse("google_login_button.html", {"request": request})
 
 
-@app.get("/auth/api/v1/google/script.js")
+@app.get("/auth/api/v1/google/login.js")
 async def google_login_script():
     return FileResponse("templates/script.js")
 
 
-@app.get("/auth/api/v1/google/redirected")
+@app.get("/auth/google/redirected")
 async def google_login_redirected(access_token: str):
-    """구글 로그인 이후 리다이렉트 되는 페이지"""
+    """구글 로그인 (자바스크립트) 이후 리다이렉트 되는 페이지"""
     return {"message": "hello"}
 
 
