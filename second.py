@@ -140,10 +140,14 @@ async def google_login_redirected(access_token: str):
     return {"message": "hello"}
 
 
-def google_uri():
-    info = {
+@app.get("/auth/api/v1/google/login")
+async def request_to_google_resource_server():
+    """해당 uri를 get으로 방문하면, google uri로 리다이렉션 합니다.
+    이때 요청되는 get 리다이렉트 uri는 OAuth2 api 로그인 요청 페이지 입니다.
+    """
+    query_dict = {
         "client_id": secret_config["GOOGLE_OAUTH2_CLIENT_ID"],
-        "redirect_uri": "http://localhost:8000/auth/api/v1/google/server/redirected",
+        "rediect_uri": "/auth/api/v1/google/redirected",
         "response_type": "code",
         "scope": " ".join(
             [
@@ -152,30 +156,63 @@ def google_uri():
             ]
         ),
         "access_type": "offline",
-        "state": "login_wep_app",
+        "state": "google_login_api",
         "prompt": "select_account",
     }
-    uri = "https://accounts.google.com/o/oauth2/v2/auth"
-    query_param = "&".join([f"{k}={v}" for k, v in info.items()])
-
-    uri = f"{uri}?{query_param}"
-    return uri
+    query_param = "&".join([f"{k}={v}" for k, v in query_dict.items()])
+    uri = f"https://accounts.google.com/o/oauth2/v2/auth?{query_param}"
+    return RedirectResponse(query_param)
 
 
-@app.get("/auth/api/v1/google/server/login")
-async def google_login_redirect():
-    # return {"message": google_uri()}
-    return RedirectResponse(google_uri())
+@app.get("/auth/api/v1/google/redirected")
+async def redirected_from_google_resource_server(code: Optional[str] = Query(None)):
+    """구글 OAuth2 로그인 api로 부터 redirect되어 code를 받는 함수
+    해당 요청으로 부터 code를 받아 access_token을 얻습니다.
+    """
+    if not code:
+        return JSONResponse(
+            content={
+                "error": "문제가 발생했습니다 (구글로 부터 코드를 얻어오지 못했습니다). 다시 시도하거나, 서버관리자에게 연락하세요"
+            },
+            status_code=status.HTTP_400_BAD_REQUEST,
+        )
+
+    query_dict = {
+        "client_id": secret_config["GOOGLE_OAUTH2_CLIENT_ID"],
+        "client_secret": secret_config["GOOGLE_OAUTH2_CLIENT_PASSWORD"],
+        "code": code,
+        "grant_type": "authorization_code",
+        "redirect_uri": "/auth/api/v1/google/redirected",
+    }
+    uri = "https://oauth2.googleapis.com/token"
+
+    # access_token으로 바꾸기
+    response = requests.post(uri, data=query_dict)
+    if response.status_code == 200:
+        data = response.json()
+        ret = {}
+        for k in ["access_token", "expires_in", "scope", "token_type", "refresh_token"]:
+            if k in data:
+                ret[k] = data[k]
+        ret["message"] = "login successfully"
+        return ret
+
+    else:
+        return {"message": "access token can not gained"}
 
 
 async def google_code_to_access_token(code: str):
     uri = "https://oauth2.googleapis.com/token"
+    re_uri_1 = "http://localhost:8000/auth/api/v1/google/server/redirected"
+    re_uri_2 = "http://localhost:8000/auth/api/v1/google/redirected"
+    re_uri_3 = "http://localhost:8000/auth/api/v1/google/token"
+
     info = {
         "client_id": secret_config["GOOGLE_OAUTH2_CLIENT_ID"],
         "client_secret": secret_config["GOOGLE_OAUTH2_CLIENT_PASSWORD"],
         "code": code,
         "grant_type": "authorization_code",
-        "redirect_uri": "http://localhost:8000/auth/api/v1/google/server/redirected",
+        "redirect_uri": re_uri_1,
     }
 
     r = requests.post("https://oauth2.googleapis.com/token", data=info)
@@ -186,7 +223,6 @@ async def google_code_to_access_token(code: str):
         "data": r.content,
         "request_header": r.request.headers,
         "request_body": r.request.body,
-        "request_host": r.
     }
     if r.status_code == status.HTTP_200_OK:
         return r.status_code
