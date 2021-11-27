@@ -23,6 +23,7 @@ aiofiles = "^0.7.0"
 aiohttp = {extras = ["speedups"], version = "^3.8.0"}
 aiodns = "^3.0.0"
 PyJWT = "^2.3.0"
+bcrypt = "^3.2.0"
 
 [tool.poetry.dev-dependencies]
 jupyterlab = "^3.0.16"
