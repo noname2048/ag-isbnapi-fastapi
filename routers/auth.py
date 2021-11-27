@@ -65,3 +65,18 @@ async def google_auth(code: Optional[str] = Query(None)):
 
     else:
         return {"message": "access token can not gained"}
+
+
+import bcrypt
+
+
+@router.post("auth/signup", tags=["auth", "signup"])
+async def signup(user_id, user_passwd, passwd_confirm):
+    if user_passwd == passwd_confirm:
+        hashed_passwd = bcrypt.hashpw(user_passwd.encode("utf-8"), bcrypt.gensalt())
+
+
+@router.poset("auth/login", tags=["auth", "login"])
+async def login(user_id, user_passwd):
+    db_password = ...
+    hashed_passwd = bcrypt.checkpw(user_passwd.encode("utf-8"), db_password)
