@@ -1,5 +1,6 @@
 from typing import Optional, List
 import datetime
+import uvicorn
 
 from fastapi import (
     FastAPI,
@@ -17,15 +18,18 @@ from fastapi import (
 from fastapi.responses import Response, FileResponse, RedirectResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
+from fastapi.middleware.cors import CORSMiddleware
 
 from pydantic import BaseModel, Field
 from pydantic.errors import JsonTypeError
 from second_util import query_and_register
-
 from dotenv import dotenv_values
+
 import pathlib
 import aiohttp
 import requests
+
+from routers import search
 
 REPO_DIR = pathlib.Path(__file__).parent
 secret_config = dotenv_values(REPO_DIR / ".env")
@@ -35,6 +39,21 @@ app = FastAPI(
 )
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
+
+origins = [
+    "http://localhost:8000",
+    "http://localhost:3000",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+app.include_router(search.router)
 
 
 @app.get("/")
@@ -269,3 +288,7 @@ async def google_login_token(
         "scope": scope,
         "token_type": token_type,
     }
+
+
+if __name__ == "__main__":
+    uvicorn.run("second:app", host="0.0.0.0", port=8000, reload=True)
