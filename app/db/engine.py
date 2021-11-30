@@ -1,6 +1,9 @@
-from sqlalchemy import create_engine, engine
+"""
+sqlalchemy를 통해 db를 
+"""
+from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import session, sessionmaker
+from sqlalchemy.orm import sessionmaker
 
 from dotenv import dotenv_values
 import os

@@ -78,6 +78,15 @@ async def request(books: List[RequsetBookInfo] = Body(...)):
     pass
 
 
-@router.post("/")
-async def request(books=Depends(BookRequestParams)):
+@router.post("/class")
+async def request_class(book: BookRequestParams = Depends(BookRequestParams)):
+    isbn = book.isbn
+
+    pass
+
+
+@router.post("/class_list")
+async def request_class_lsit(
+    books: List[BookRequestParams] = Depends(BookRequestParams),
+):
     pass
