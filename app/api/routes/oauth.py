@@ -12,8 +12,6 @@ import requests
 
 
 router = APIRouter(
-    prefix="/api/v1/oauth",
-    tags=["oauth"],
     responses={
         200: {"description": "Ok"},
         400: {"description": "Bad Request"},

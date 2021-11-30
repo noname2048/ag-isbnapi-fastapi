@@ -1,13 +1,12 @@
 from typing import Optional, List
-from fastapi import APIRouter, Query, Body
+from fastapi import APIRouter, Query, Body, Depends
 
 from pydantic import BaseModel, Field
 import datetime
 
+from app.api.dependencies.request import BookRequestParams
 
 router = APIRouter(
-    prefix="/api/v1/request",
-    tags=["search"],
     responses={
         200: {"description": "Ok"},
         201: {"description": "creation"},
@@ -76,4 +75,9 @@ async def request(books: List[RequsetBookInfo] = Body(...)):
     """
     외부 API를 이용하여(하루 5천회 사용가능) 내부 DB에 결과값을 저장합니다.
     """
+    pass
+
+
+@router.post("/")
+async def request(books=Depends(BookRequestParams)):
     pass

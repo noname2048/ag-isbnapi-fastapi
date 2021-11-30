@@ -3,8 +3,6 @@ from fastapi import APIRouter
 from fastapi import Query
 
 router = APIRouter(
-    prefix="/api/v1/books",
-    tags=["books"],
     responses={
         200: {"description": "Ok"},
         400: {"description": "Bad Request"},
@@ -13,7 +11,7 @@ router = APIRouter(
 )
 
 
-@router.get("/recent", tags=["books", "search"])
+@router.get("/recent")
 async def recent(
     limit: int = Query(
         10, title="limit", description="API가 한번당 리턴할 책의 수", ge=1, le=100
