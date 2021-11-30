@@ -2,8 +2,6 @@ from typing import Optional
 from fastapi import APIRouter, Query
 
 router = APIRouter(
-    prefix="/api/v1/search",
-    tags=["search"],
     responses={
         200: {"description": "Ok"},
         400: {"description": "Bad Request"},
