@@ -20,7 +20,7 @@ async def signup(user_id, user_passwd, passwd_confirm):
         hashed_passwd = bcrypt.hashpw(user_passwd.encode("utf-8"), bcrypt.gensalt())
 
 
-@router.poset("/login", tags=["auth", "login"])
+@router.post("/login", tags=["auth", "login"])
 async def login(user_id, user_passwd):
     db_password = ...
     hashed_passwd = bcrypt.checkpw(user_passwd.encode("utf-8"), db_password)

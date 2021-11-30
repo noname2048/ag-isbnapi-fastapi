@@ -19,8 +19,8 @@ async def search(
         min_length=13,
         regex="^[0-9-]{13,}",
         examples={
-            "only_number": "9788966261840",
-            "include_hippen": "979-11-6254-196-8",
+            "only_number": {"value": {"isbn": "9788966261840"}},
+            "include_hippen": {"value": {"isbn": "979-11-6254-196-8"}},
         },
     ),
     title: Optional[str] = Query(
@@ -28,10 +28,14 @@ async def search(
     ),
 ):
     """
-    검색용 API, isbn 혹은 title을 필요로 합니다.
+    # 검색용 API
+    query로 isbn, 혹은 title을 받아 해당하는 책의 내용을 리턴합니다.
+
     isbn은 -가 포함되어있어도 괜찮으며, title 이용시 좌우 공백은 제거됩니다.
 
     내부 DB에 있는 책 정보를 검색하여 리턴합니다.
+
+    **isbn과 title 모두 있으면 isbn을 사용합니다.**
     """
     if isbn is not None and title is not None:
         title = None

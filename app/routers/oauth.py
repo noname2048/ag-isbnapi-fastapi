@@ -19,7 +19,7 @@ router = APIRouter(
     },
 )
 # google 에서 oauth2 이용을 위해 등록한 id, key
-secret_config = dotenv_values(Path(__file__).parents.parents / ".env")
+secret_config = dotenv_values(Path(__file__).parent.parent / ".env")
 
 
 @router.get("/auth/google/login/redirected")
