@@ -14,6 +14,9 @@ class BookRequestCreate(BookBase):
 class BookRequest(BookRequestCreate):
     id: int
 
+    class Config:
+        orm_mode = True
+
 
 class BookResponseCreate(BookBase):
     request_id: int
@@ -21,3 +24,6 @@ class BookResponseCreate(BookBase):
 
 class BookResponse(BookResponseCreate):
     id: int
+
+    class Config:
+        orm_mode = True

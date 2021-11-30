@@ -1,5 +1,7 @@
 from pydantic import BaseModel
 import datetime
+
+from sqlalchemy.orm import relationship
 from app.db.engine import Base
 
 from sqlalchemy import Column, Integer, Datetime, ForeignKey
@@ -17,6 +19,8 @@ class BookResponse(Base):
     __tablename__ = "bookresponses"
 
     id = Column(Integer, primary_key=True, index=True)
-    request_id = Column(Integer, ForeignKey("requestbook.id"))
     isbn = Column(Integer, index=True)
     date = Column(Datetime)
+
+    request = Column(Integer, ForeignKey("bookrequests.id"))
+    request_id = relationship("bookrequests", back_populates="request")
