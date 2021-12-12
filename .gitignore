@@ -1,16 +1,12 @@
-
-# pyenv local versions
-.python-version
-
 # vscode, pycharm
 .vscode
 .idea
 
+# pyenv local versions
+.python-version
 # python cache
 __pycache__
-
 # notebooks
 .ipynb_checkpoints
-
 # secret_keys for api
 .env
