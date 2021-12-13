@@ -10,3 +10,6 @@ __pycache__
 .ipynb_checkpoints
 # secret_keys for api
 .env
+
+# naver api secret
+naver_api_client.json
