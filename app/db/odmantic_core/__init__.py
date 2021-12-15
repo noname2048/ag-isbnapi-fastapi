@@ -1,11 +1,10 @@
-from pathlib import Path as SysPath
+from app.settings.base import REPO_DIR
 import os
 from dotenv import dotenv_values
 
 from motor.motor_asyncio import AsyncIOMotorClient
 from odmantic import AIOEngine
 
-REPO_DIR = SysPath(__file__).resolve().parent.parent.parent
 if not os.path.isdir(REPO_DIR / "app"):
     raise EnvironmentError("cannot find REPO_DIR directory")
 
@@ -19,6 +18,13 @@ except KeyError:
 
 
 class _MongoDB:
+    # __instance = None
+
+    # def __new__(cls, *args, **kwargs):
+    #     if not cls.__instance:
+    #         cls.__instance = super().__new__(cls, *args, **kwargs)
+    #     return cls.__instance
+
     def __init__(self):
         self.client = None
         self.engine = None
@@ -34,3 +40,4 @@ class _MongoDB:
 
 
 mongo_db = _MongoDB()
+mongo_db.connect()
