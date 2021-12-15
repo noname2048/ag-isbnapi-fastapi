@@ -27,6 +27,7 @@ beautifulsoup4 = "^4.10.0"
 odmantic = "^0.3.5"
 motor = "^2.3.0"
 pymongo = {version = "^3.12.0", extras = ["srv"]}
+cchardet = "^2.1.7"
 
 [tool.poetry.dev-dependencies]
 jupyterlab = "^3.0.16"

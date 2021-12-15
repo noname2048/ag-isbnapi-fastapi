@@ -1,6 +1,5 @@
 import uvicorn
 from fastapi import FastAPI, APIRouter
-from .routers import router
 
 from app.routers.request import router as request_router
 from app.routers.books import router as books_router
@@ -27,10 +26,4 @@ async def hello():
 
 
 if __name__ == "__main__":
-    import os
-
-    try:
-        if os.getenv("FASTAPI_DEBUG") == True:
-            uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)
-    except KeyError:
-        raise KeyError("FASTAPI_DEBUG value not set.")
+    uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)

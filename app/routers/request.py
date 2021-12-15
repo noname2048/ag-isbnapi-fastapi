@@ -1,10 +1,21 @@
 from typing import Optional, List
-from fastapi import APIRouter, Query, Body, Depends
+from fastapi import APIRouter, Query, Body, Depends, BackgroundTasks
 
 from pydantic import BaseModel, Field
 import datetime
 
-from app.routers.dependencies.request import BookRequestCreate, BookResponseCreate
+from app.dependencies.request import BookRequestCreate, BookResponseCreate
+from app.db.odmantic_core import mongo_db
+from app.db.odmantic_core.book import Book
+from app.db.odmantic_core.request import Request
+
+from motor.motor_asyncio import AsyncIOMotorClient
+from odmantic import AIOEngine
+
+from app.task.aladin_api import do_request_task
+
+engine = AIOEngine(motor_client=mongo_db.client, database="isbn")
+
 
 router = APIRouter(
     responses={
@@ -38,6 +49,7 @@ class ResponseBookInfo(BaseModel):
 
 @router.post("/")
 async def request(
+    background_tasks: BackgroundTasks,
     book: BookRequestCreate = Body(
         ...,
         title="book",
@@ -46,16 +58,38 @@ async def request(
             "only_number": {"value": {"isbn": "9788966261840"}},
             "include_hippen": {"value": {"isbn": "979-11-6254-196-8"}},
         },
-    )
+    ),
 ):
     """
     외부 API를 이용하여(하루 5천회 사용가능) 내부 DB에 결과값을 저장합니다.
     json body를 통해 식별합니다.
-    """
-    book.date = book.date or datetime.datetime.now()
 
-    # TODO: 내부 저장 후 요청 id 출력
-    return {"request": book}
+    1. 먼저 내부 DB 확인 -> 있으면 return
+    2. 이미 요청된 request 있나 확인 -> 있으면 return
+    3. 1, 2가 없다는 가정하에 작업진행
+    """
+    isbn13 = str(book.isbn)
+    if len(isbn13) != 13:
+        # TODO: validation
+        return {"message": "isbn is wrong, check again"}
+
+    book_object = await engine.find_one(Book, Book.isbn13 == isbn13)
+    if book_object:
+        return {"message": "request already in db"}
+    else:
+        request_object = await mongo_db.engine.find_one(
+            Request, (Request.isbn13 == int(book.isbn)) & (Request.response_code == 200)
+        )
+
+        if request_object:
+            return {"message": "wait for moment. other request is in progress"}
+        else:
+            request = Request(
+                isbn13=isbn13, request_date=datetime.datetime.now(), response_code=200
+            )
+            request_object = await mongo_db.engine.save(request)
+            background_tasks.add_task(do_request_task, request_object.id)
+    return {"request": request}
 
 
 @router.post("/list")
