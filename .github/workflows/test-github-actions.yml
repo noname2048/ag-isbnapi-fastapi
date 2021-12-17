@@ -5,9 +5,9 @@ on:
       - product
 
 jobs:
-  build:
+  do_pytest:
     runs-on: ubuntu-latest
-
+    environment: FASTAPI_PRODUCT
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python 3.10
