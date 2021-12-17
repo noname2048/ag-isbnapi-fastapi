@@ -7,7 +7,7 @@ on:
 jobs:
   do_pytest:
     runs-on: ubuntu-latest
-    environments: FASTAPI_PRODUCT
+    environment: FASTAPI_PRODUCT
 
     steps:
       - uses: actions/checkout@v2
