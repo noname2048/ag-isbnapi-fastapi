@@ -7,7 +7,7 @@ on:
 jobs:
   do_pytest:
     runs-on: ubuntu-latest
-    environment: FASTAPI_PRODUCT
+    environment: ${{ secrets.FASTAPI_PRODUCT }}
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python 3.10
