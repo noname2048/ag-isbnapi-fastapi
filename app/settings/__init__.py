@@ -5,6 +5,8 @@ from .product import config as product_config
 _AG_DEBUG = os.environ.get("AG_DEBUG", "true")
 if _AG_DEBUG == "true":
     AG_DEBUG = True
+else:
+    AG_DEBUG = False
 
 if AG_DEBUG:
     config = base_config
