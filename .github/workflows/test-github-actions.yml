@@ -20,7 +20,7 @@ jobs:
           tree .
       - name: check_enviroment to python
         env:
-          ALADIN_TTB_KEY: ${{ env.ALADIN_TTB_KEY }}
+          ALADIN_TTB_KEY: $ALADIN_TTB_KEY
         run: |
           python check_environment.py
       - name: Install poetry
