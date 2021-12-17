@@ -1,5 +1,5 @@
 import aiohttp
-from app.settings.base import config
+from app.settings.product import config
 import json
 from app.db.odmantic_core import mongo_db
 from app.db.odmantic_core.request import Request

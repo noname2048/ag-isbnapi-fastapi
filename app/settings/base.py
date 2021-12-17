@@ -2,8 +2,6 @@ from pathlib import Path as SysPath
 import os
 from dotenv import dotenv_values
 
-from app.task.config import get_secret
-
 _FILE_DIR = SysPath(__file__).resolve()
 _SETTING_DIR = _FILE_DIR.parent
 _APP_DIR = _SETTING_DIR.parent
