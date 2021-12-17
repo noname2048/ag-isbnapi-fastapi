@@ -13,7 +13,7 @@ jobs:
       MONGO_DB: ${{ secrets.MONGO_DB }}
       MONGO_PASSWORD: ${{ secrets.MONGO_PASSWORD }}
       MONGO_USER: ${{ secrets.MONGO_USER }}
-
+      AG_DEBUG: "false"
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python 3.10
