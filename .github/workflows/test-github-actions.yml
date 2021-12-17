@@ -8,6 +8,11 @@ jobs:
   do_pytest:
     runs-on: ubuntu-latest
     environment: FASTAPI_PRODUCT
+    env:
+      ALADIN_TTB_KEY: ${{ secrets.ALADIN_TTB_KEY }}
+      MONGO_DB: ${{ secrets.MONGO_DB }}
+      MONGO_PASSWORD: ${{ secrets.MONGO_PASSWORD }}
+      MONGO_USER: ${{ secrets.MONGO_USER }}
 
     steps:
       - uses: actions/checkout@v2
