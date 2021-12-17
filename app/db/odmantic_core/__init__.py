@@ -1,18 +1,13 @@
 from app.settings.base import REPO_DIR
-import os
-from dotenv import dotenv_values
+from app.settings import config
 
 from motor.motor_asyncio import AsyncIOMotorClient
 from odmantic import AIOEngine
 
-if not os.path.isdir(REPO_DIR / "app"):
-    raise EnvironmentError("cannot find REPO_DIR directory")
-
-_config = dotenv_values(REPO_DIR / ".env")
 try:
-    _mongo_db_name = _config.get("MONGO_DB")
-    _mongo_db_password = _config.get("MONGO_PASSWORD")
-    _mongo_db_user = _config.get("MONGO_USER")
+    _mongo_db_name = config.get("MONGO_DB")
+    _mongo_db_password = config.get("MONGO_PASSWORD")
+    _mongo_db_user = config.get("MONGO_USER")
 except KeyError:
     raise EnvironmentError("cannot find MONGO_DB from '.env' file")
 
@@ -37,6 +32,10 @@ class _MongoDB:
 
     def close(self):
         self.client.close()
+
+    def __del__(self):
+        # self.close()
+        pass
 
 
 mongo_db = _MongoDB()
