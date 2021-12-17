@@ -1,10 +1,11 @@
 import aiohttp
-from app.settings.product import config
+from app.settings import config
 import json
 from app.db.odmantic_core import mongo_db
 from app.db.odmantic_core.request import Request
 from app.db.odmantic_core.book import Book
 import datetime
+from app.task.image_upload import upload
 
 ALADIN_API_URL = "http://www.aladin.co.kr/ttb/api/ItemLookUp.aspx"
 TTB_KEY = config["ALADIN_TTB_KEY"]
@@ -69,13 +70,19 @@ async def do_request_task(mongo_object_id: str):
                     "author": item[0]["author"],
                 }
                 img_url = item[0]["cover"]
+                if img_url:
+                    t_or_f = upload(isbn13, img_url)
+                    if t_or_f:
+                        cover = f"{isbn13}.jpg"
+                    else:
+                        cover = "error"
 
                 response_time = datetime.datetime.now()
                 book = Book(
                     **useful_data,
                     datetime=response_time,
                     cover="",
-                    created_at=response_time
+                    created_at=response_time,
                 )
                 await mongo_db.engine.save(book)
 
