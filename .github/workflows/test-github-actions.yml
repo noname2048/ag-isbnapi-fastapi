@@ -32,18 +32,18 @@ jobs:
         run: |
           pytest
 
-  simple_deploy:
-    needs: do_pytest
-    runs-on: self-hosted
-    environment: FASTAPI_PRODUCT
+  # simple_deploy:
+  #   needs: do_pytest
+  #   runs-on: self-hosted
+  #   environment: FASTAPI_PRODUCT
 
-    steps:
-      - name: Pulling git
-        working-directory: /home/ubuntu/ag-isbnapi-fastapi
-        run: |
-          git pull
-          poetry install
-          echo ${{ secrets.EC2_PASSWORD }} | sudo service restart job
+  #   steps:
+  #     - name: Pulling git
+  #       working-directory: /home/ubuntu/ag-isbnapi-fastapi
+  #       run: |
+  #         git pull
+  #         poetry install
+  #         echo ${{ secrets.EC2_PASSWORD }} | sudo service restart job
 
   # build:
   #   needs: do_pytest
