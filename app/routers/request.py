@@ -10,7 +10,7 @@ from app.db.odmantic_core.book import Book
 from app.db.odmantic_core.request import Request
 
 from motor.motor_asyncio import AsyncIOMotorClient
-from odmantic import AIOEngine
+from odmantic import AIOEngine, query
 
 from app.task.aladin_api import do_request_task
 
@@ -48,8 +48,10 @@ class ResponseBookInfo(BaseModel):
 
 
 @router.get("/")
-async def show_request():
-    request_list = await mongo_db.engine.find(Request, {}, limit=10)
+async def show_recent_request(limit: int = Query(10, title="limit", example=10)):
+    request_list = await mongo_db.engine.find(
+        Request, {}, sort=Request.request_date.desc(), limit=limit
+    )
     return {"recent-10items": request_list}
 
 
