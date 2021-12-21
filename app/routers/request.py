@@ -47,6 +47,12 @@ class ResponseBookInfo(BaseModel):
     date: datetime.datetime = Field(title="date", description="책의 정보가 저장된 시간")
 
 
+@router.get("/")
+async def show_request():
+    request_list = await mongo_db.engine.find(Request, {}, limit=10)
+    return {"recent-10items": request_list}
+
+
 @router.post("/")
 async def request(
     background_tasks: BackgroundTasks,
