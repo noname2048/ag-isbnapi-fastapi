@@ -2,6 +2,10 @@ from typing import Optional
 from fastapi import APIRouter
 from fastapi import Query
 
+from app.db.odmantic_core import mongo_db
+from app.db.odmantic_core.book import Book
+from odmantic import query
+
 router = APIRouter(
     responses={
         200: {"description": "Ok"},
@@ -9,6 +13,27 @@ router = APIRouter(
         404: {"description": "Not found"},
     },
 )
+
+
+@router.get("")
+async def books_search(
+    title: Optional[str] = None,
+    isbn13: Optional[str] = None,
+    limit: int = Query(10, title="limit", le=100),
+):
+    if not title and not isbn13:
+        result = await mongo_db.engine.find(
+            Book, sort=Book.pub_date.desc(), limit=limit
+        )
+        return result
+
+    if isbn13:
+        result = await mongo_db.engine.find(Book, query.match(Book.isbn13, isbn13))
+        return result
+
+    if title:
+        result = await mongo_db.engin.find(Book, query.match(Book.title, title))
+        return result
 
 
 @router.get("/recent")
