@@ -4,6 +4,7 @@ from odmantic.query import match
 from app.db.odmantic_core import mongo_db
 from app.db.odmantic_core.book import Book
 from app.db.odmantic_core.request import Request
+from app.db.odmantic_core.response import Response
 
 
 router = APIRouter()
@@ -102,11 +103,15 @@ async def books_response_detail(id: str = Path(...)):
         return response
     else:
         raise HTTPException(status_code=404, detail="No Response Found, have id({id})")
-    
+
+
 @router.get("/responses/{id}/request")
+async def books_responses_request(id: str = Path(...)):
     response = await mongo_db.engine.find_one(Response, Response.id.match(id))
     if response:
-        request = await mongo_db.engine.find_one(Request, Request.id.match(response.request_id))
+        request = await mongo_db.engine.find_one(
+            Request, Request.id.match(response.request_id)
+        )
         if request:
             return request
         else:
