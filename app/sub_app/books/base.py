@@ -1,11 +1,8 @@
 from typing import Optional
 from fastapi import APIRouter, Query, Path, HTTPException
-from odmantic.query import match
-from app.db.odmantic_core import mongo_db
-from app.db.odmantic_core.book import Book
-from app.db.odmantic_core.request import Request
-from app.db.odmantic_core.response import Response
 
+from app.nosql import mongo_db
+from app.nosql.model import Book, Request, Response
 
 router = APIRouter()
 
