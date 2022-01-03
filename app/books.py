@@ -7,13 +7,21 @@ from app.nosql.model import Book, Request, Response
 router = APIRouter()
 
 
+class PagenationQueryParams:
+    def __init__(
+        self, limit: int = Query(10, ge=10, le=100), offset: int = Query(0, ge=0)
+    ):
+        self.limit = limit
+        self.offset = offset
+
+
 @router.get("")
 async def books(limit: Optional[int] = Query(10, le=100)):
     ret = await mongo_db.engine.find(Book, sort=Book.pub_date.desc(), limit=limit)
     return ret
 
 
-@router.get("/search")
+@router.get("/search", tags=["search"])
 async def books_search(
     title: Optional[str] = Query(None),
     isbn13: Optional[int] = Query(None),
@@ -30,7 +38,7 @@ async def books_search(
     return ret
 
 
-@router.get("/requests")
+@router.get("/requests", tags=["requests"])
 async def books_reqeusts_list(
     title: Optional[str] = Query(None),
     isbn13: Optional[int] = Query(None),
@@ -39,7 +47,7 @@ async def books_reqeusts_list(
     pass
 
 
-@router.get("/reqeusts/{id}")
+@router.get("/reqeusts/{id}", tags=["requests"])
 async def books_requests_detail(id: str = Path(...)):
     ret = await mongo_db.engine.find_one(Request, Request.id.match(id))
     if ret:
@@ -48,7 +56,7 @@ async def books_requests_detail(id: str = Path(...)):
         raise HTTPException(status_code=404, detail="No Requests found, have id({id})")
 
 
-@router.get("/requests/search")
+@router.get("/requests/search", tags=["reqeusts"])
 async def books_requests_search(
     title: Optional[str] = Query(None),
     isbn13: Optional[int] = Query(None),
@@ -69,7 +77,7 @@ async def books_requests_search(
     return ret
 
 
-@router.get("/requests/{id}/response")
+@router.get("/requests/{id}/response", tags=["reqeusts"])
 async def books_reqeusts_response(id: str = Path(...)):
     request = await mongo_db.engine.find_one(Request, Request.id.match(id))
     if request:
@@ -87,13 +95,13 @@ async def books_reqeusts_response(id: str = Path(...)):
         raise HTTPException(status_code=404, detail="No Requests found, have id({id})")
 
 
-@router.get("/responses")
+@router.get("/responses", tags=["responses"])
 async def books_response_list(limit: Optional[int] = Query(10, le=100)):
     ret = await mongo_db.engine.find(Response, Response.date.desc(), limit=limit)
     return ret
 
 
-@router.get("/responses/{id}")
+@router.get("/responses/{id}", tags=["responses"])
 async def books_response_detail(id: str = Path(...)):
     response = await mongo_db.engine.find_one(Response, Response.id.match(id))
     if response:
@@ -102,7 +110,7 @@ async def books_response_detail(id: str = Path(...)):
         raise HTTPException(status_code=404, detail="No Response Found, have id({id})")
 
 
-@router.get("/responses/{id}/request")
+@router.get("/responses/{id}/request", tags=["responses"])
 async def books_responses_request(id: str = Path(...)):
     response = await mongo_db.engine.find_one(Response, Response.id.match(id))
     if response:

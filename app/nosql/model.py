@@ -8,7 +8,7 @@ class TimeStampModel(Model):
     updated_at: datetime
 
 
-class Book(TimeStampModel):
+class Book(Model):
     # id(str) will default
     title: str
     description: Optional[str]
@@ -41,4 +41,4 @@ class Response(Model):
     request_id: str
 
     class Config:
-        Collection = "responses"
+        collection = "responses"
