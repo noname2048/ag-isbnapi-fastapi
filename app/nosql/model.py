@@ -19,6 +19,8 @@ class Book(Model):
     pub_date: datetime
     author: str
 
+    created_at: Optional[datetime]
+
     class Config:
         collection = "books"
 
@@ -29,6 +31,7 @@ class Request(Model):
     request_date: datetime
     result_code: int
     response_id: Optional[int]
+    response_date: Optional[datetime]
 
     class Config:
         collection = "requests"
