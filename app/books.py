@@ -7,7 +7,7 @@ import regex
 import datetime
 from app.task.aladin_api import do_request_task
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field as PyField
 
 router = APIRouter()
 
@@ -56,8 +56,11 @@ async def books_reqeusts_list(
 class ISBN13(BaseModel):
     isbn13: int
 
+    class Config:
+        schema_extra = {"example": {"isbn13": 9791188102051}}
 
-@router.post("/requests", tags=["requests"])
+
+@router.post("/requests", tags=["requests"], response_model=List[Request])
 async def books_requests_accept(
     background_tasks: BackgroundTasks,
     isbn13_list: List[ISBN13] = Body(...),
