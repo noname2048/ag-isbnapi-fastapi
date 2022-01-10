@@ -81,18 +81,18 @@ async def do_request_task(mongo_object_id: str):
                 book = Book(
                     **useful_data,
                     datetime=response_time,
-                    cover="",
+                    cover=cover,
                     created_at=response_time,
                 )
                 await mongo_db.engine.save(book)
 
                 request_object.response_date = response_time
                 request_object.response_id = str(book.id)
-                request_object.response_code = 201
+                request_object.result_code = 201
                 await mongo_db.engine.save(request_object)
 
             else:
                 response_time = datetime.datetime.now()
                 request_object.response_date = response_time
-                request_object.response_code = 404
+                request_object.result_code = 404
                 await mongo_db.engine.save(request_object)
