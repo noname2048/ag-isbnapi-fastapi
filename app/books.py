@@ -1,4 +1,4 @@
-from typing import Optional, List
+from typing import Optional, List, Final
 from fastapi import APIRouter, Query, Path, HTTPException, Body, BackgroundTasks
 
 from app.nosql import mongo_db
@@ -60,36 +60,52 @@ class ISBN13(BaseModel):
         schema_extra = {"example": {"isbn13": 9791188102051}}
 
 
+ISBN_MIN = 10 ** 12
+ISBN_MAX = 10 ** 13
+
+
+def verify_isbn(isbn: int):
+    return isbn < ISBN_MIN and isbn > ISBN_MAX
+
+
 @router.post("/requests", tags=["requests"], response_model=List[Request])
 async def books_requests_accept(
     background_tasks: BackgroundTasks,
     isbn13_list: List[ISBN13] = Body(...),
 ):
-    request_list = []
-    for isbn13_obj in isbn13_list:
-        isbn13 = isbn13_obj.isbn13
-        if not regex.match(r"\d{13,13}", str(isbn13)):
-            n = datetime.datetime.now()
-            r = Request(isbn13=isbn13, request_date=n, result_code=400)
-            r = await mongo_db.engine.save(r)
-            request_list.append(r)
+    created_requests: List[Request] = []
+    for item in isbn13_list:
+        isbn13 = item.isbn13
+
+        # 유효한 isbn13 인지
+        if verify_isbn is False:
+            unsaved_request = Request(
+                isbn13=isbn13, request_date=datetime.datetime.now(), result_code=400
+            )
+            saved_request = await mongo_db.engine.save(r)
+            created_requests.append(saved_request)
         else:
-            target_book = await mongo_db.engine.find_one(
+            book_existance = await mongo_db.engine.find_one(
                 Book, Book.isbn13.match(isbn13)
             )
-            if not target_book:
-                target_request = await mongo_db.engine.find_one(
+            if not book_existance:
+                request_existance = await mongo_db.engine.find_one(
                     Request, Request.isbn13.match(isbn13)
                 )
-                if not target_request:
-                    n = datetime.datetime.now()
-                    r = Request(isbn13=isbn13, request_date=n, result_code=200)
-                    r = await mongo_db.engine.save(r)
+                if not request_existance:
+                    unsaved_request = Request(
+                        isbn13=isbn13,
+                        request_date=datetime.datetime.now(),
+                        result_code=200,
+                    )
+                    saved_request = await mongo_db.engine.save(unsaved_request)
 
-                    background_tasks.add_task(do_request_task, mongo_object_id=r.id)
-                    request_list.append(r)
+                    background_tasks.add_task(
+                        do_request_task, mongo_object_id=saved_request.id
+                    )
+                    created_requests.append(saved_request.id)
 
-    return request_list
+    return created_requests
 
 
 @router.get("/reqeusts/{id}", tags=["requests"])
