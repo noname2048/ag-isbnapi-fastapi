@@ -21,7 +21,7 @@ origins = [
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=all,
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -30,8 +30,8 @@ app.include_router(router)
 app.add_event_handler("startup", connect_db)
 app.add_event_handler("shutdown", close_db)
 
-app.scheduler = AsyncIOScheduler()
-app.scheduler.add_job(find_not_responded_request, trigger="cron", minute="*/5")
+app.scheduler = AsyncIOScheduler(timezone="Asia/Seoul")
+app.scheduler.add_job(find_not_responded_request, "interval", minutes=1)
 app.scheduler.start()
 
 
