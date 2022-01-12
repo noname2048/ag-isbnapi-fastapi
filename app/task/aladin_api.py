@@ -1,9 +1,8 @@
 import aiohttp
 from app.settings import config
 import json
-from app.db.odmantic_core import mongo_db
-from app.db.odmantic_core.request import Request
-from app.db.odmantic_core.book import Book
+from app.nosql import mongo_db
+from app.nosql.model import Request, Response, Book
 import datetime
 from app.task.image_upload import upload
 
@@ -54,8 +53,18 @@ async def do_request_task(mongo_object_id: str):
                     text = await response.text()
 
         if text:
-            result = json.loads(text[:-1], strict=False)
-            item = result.get("item", None)
+            try:
+                result = await json.loads(text[:-1], strict=False)
+                item = result.get("item", None)
+            except json.decoder.JSONDecodeError:
+                from settings import REPO_DIR
+
+                with open(REPO_DIR / "error_json" / f"{isbn13}.txt") as f:
+                    f.write(text)
+                    print(f"{isbn13}에서 json 오류 발생. 스킵합니다.")
+                request_object.result_code = 500
+                await mongo_db.engine.save(request_object)
+                return
 
             if item:
                 useful_data = {
