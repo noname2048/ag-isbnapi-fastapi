@@ -17,7 +17,7 @@ async def upload(isbn13: int, img_url: HttpUrl) -> bool:
                 "s3",
                 region_name="ap-northeast-2",
                 aws_access_key_id=config["aws_id"],
-                aws_secret_access_key=config["awd_key"],
+                aws_secret_access_key=config["aws_key"],
             )
             bucket = s3.Bucket("job-book-image")
             obj = bucket.Object(f"{isbn13}.jpg")
