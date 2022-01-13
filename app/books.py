@@ -12,16 +12,12 @@ from pydantic import BaseModel, Field as PyField
 router = APIRouter()
 
 
-class PagenationQueryParams:
-    def __init__(
-        self, limit: int = Query(10, ge=10, le=100), offset: int = Query(0, ge=0)
-    ):
-        self.limit = limit
-        self.offset = offset
-
-
 @router.get("")
 async def books(limit: Optional[int] = Query(10, le=100)):
+    """사용된다고 가정하지 않는 기본 / 루트
+
+    검색창에 아무것도 입력하지 않았을 때 최근 출판된 10개의 책을 json 리턴합니다.
+    """
     ret = await mongo_db.engine.find(Book, sort=Book.pub_date.desc(), limit=limit)
     return ret
 
@@ -32,6 +28,10 @@ async def books_search(
     isbn13: Optional[int] = Query(None),
     limit: Optional[int] = Query(10, le=100),
 ):
+    """기본 검색 함수, title과 isbn13(우선)을 지원합니다.
+
+    두 개 모두 입력되지 않았다면 최근 출판된 10개의 책을 json 리턴합니다.
+    """
     if isbn13:
         ret = await mongo_db.engine.find(Book, Book.isbn13.match(isbn13), limit=limit)
         return ret
@@ -49,6 +49,24 @@ async def books_reqeusts_list(
     isbn13: Optional[int] = Query(None),
     limit: Optional[int] = Query(10, le=100),
 ):
+    """최근의 리퀘스트를 보여주는 함수, title과 isbn13(우선)을 지원합니다.
+
+    아무것도 입력되지 않았다면 최근 만들어진 Request 10개를 보여줍니다.
+    """
+    if isbn13:
+        ret = await mongo_db.engine.find(
+            Request, Request.isbn13.match(isbn13), limit=limit
+        )
+        return ret
+    elif title:
+        ret = await mongo_db.engine.find(
+            Request, Request.title.match(title), limit=limit
+        )
+    else:
+        ret = await mongo_db.engine.find(
+            Request, Request.created_at.desc(), limit=limit
+        )
+
     ret = await mongo_db.engine.find(Request, limit=limit)
     return ret
 
@@ -71,10 +89,19 @@ def verify_isbn(isbn: int):
 @router.post("/requests", tags=["requests"], response_model=List[Request])
 async def books_requests_accept(
     background_tasks: BackgroundTasks,
-    isbn13_list: List[ISBN13] = Body(...),
+    list_of_isbn13_object: List[ISBN13] = Body(...),
 ):
+    """request를 생성을 post로 요청받는 함수
+
+    [{ "isbn": ~(number) }] 의 형태를 지원받습니다.
+    결과로 생성된 [{ requst_id: ~ , ... }] 을 돌려줍니다.
+
+    이미 있는 request는 무시합니다.
+
+    생성된 request는 자동으로 background task를 작동시킵니다.
+    """
     created_requests: List[Request] = []
-    for item in isbn13_list:
+    for item in list_of_isbn13_object:
         isbn13 = item.isbn13
 
         # 유효한 isbn13 인지
@@ -82,28 +109,27 @@ async def books_requests_accept(
             unsaved_request = Request(
                 isbn13=isbn13, request_date=datetime.datetime.now(), result_code=400
             )
-            saved_request = await mongo_db.engine.save(r)
+            saved_request = await mongo_db.engine.save(unsaved_request)
             created_requests.append(saved_request)
         else:
             book_existance = await mongo_db.engine.find_one(
                 Book, Book.isbn13.match(isbn13)
             )
-            if not book_existance:
-                request_existance = await mongo_db.engine.find_one(
-                    Request, Request.isbn13.match(isbn13)
+            request_existance = await mongo_db.engine.find_one(
+                Request, Request.isbn13.match(isbn13)
+            )
+            if not book_existance and not request_existance:
+                unsaved_request = Request(
+                    isbn13=isbn13,
+                    created_at=datetime.datetime.now(),
+                    status_code=200,
                 )
-                if not request_existance:
-                    unsaved_request = Request(
-                        isbn13=isbn13,
-                        request_date=datetime.datetime.now(),
-                        result_code=200,
-                    )
-                    saved_request = await mongo_db.engine.save(unsaved_request)
+                saved_request = await mongo_db.engine.save(unsaved_request)
 
-                    background_tasks.add_task(
-                        do_request_task, mongo_object_id=saved_request.id
-                    )
-                    created_requests.append(saved_request.id)
+                background_tasks.add_task(
+                    do_request_task, mongo_object_id=saved_request.id
+                )
+                created_requests.append(saved_request.id)
 
     return created_requests
 

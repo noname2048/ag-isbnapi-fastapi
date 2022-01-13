@@ -11,13 +11,12 @@ class TimeStampModel(Model):
 class Request(Model):
     # id(str) will default
     isbn13: int
-    state_code: int
+    status_code: int
 
     response_type: Optional[str]  # error, book
     response_id: Optional[int]
 
     created_at: datetime
-    answered_at: Union[datetime, None]
 
     class Config:
         collection = "requests"
@@ -46,7 +45,7 @@ class ErrorReport(Model):
     isbn13: int
     request_id: str
     created_at: datetime
-    data: Optional[Union[dict, str]]
+    data: Optional[str]
 
     class Config:
         collection = "errors"

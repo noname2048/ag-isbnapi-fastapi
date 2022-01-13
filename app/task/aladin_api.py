@@ -2,7 +2,7 @@ import aiohttp
 from app.settings import config
 import json
 from app.nosql import mongo_db
-from app.nosql.model import Request, Response, Book
+from app.nosql.model import Request, Book, ErrorReport
 import datetime
 from app.task.image_upload import upload
 
@@ -35,7 +35,10 @@ async def do_request_task(mongo_object_id: str):
     request_object: Request = await mongo_db.engine.find_one(
         Request, Request.id == mongo_object_id
     )
-    if request_object:
+    if not request_object:
+        print("찾을 수 없는 request 오류")
+        return
+    else:
         isbn13 = request_object.isbn13
 
         async with aiohttp.ClientSession() as session:
@@ -54,15 +57,24 @@ async def do_request_task(mongo_object_id: str):
 
         if text:
             try:
-                result = await json.loads(text[:-1], strict=False)
+                result = json.loads(text[:-1], strict=False)
                 item = result.get("item", None)
             except json.decoder.JSONDecodeError:
-                from settings import REPO_DIR
+                from app.settings.base import REPO_DIR
 
-                with open(REPO_DIR / "error_json" / f"{isbn13}.txt") as f:
+                with open(REPO_DIR / "error_json" / f"{isbn13}.txt", "w") as f:
                     f.write(text)
                     print(f"{isbn13}에서 json 오류 발생. 스킵합니다.")
-                request_object.result_code = 500
+                    error_report = ErrorReport(
+                        isbn13=isbn13,
+                        create_at=datetime.datetime.now(),
+                        request_id=request_object.id,
+                        data=text,
+                    )
+                    error_report = await mongo_db.engine.save(error_report)
+                request_object.status_code = 500
+                request_object.response_type = "error"
+                request_object.response_id = error_report.id
                 await mongo_db.engine.save(request_object)
                 return
 
@@ -80,7 +92,7 @@ async def do_request_task(mongo_object_id: str):
                 }
                 img_url = item[0]["cover"]
                 if img_url:
-                    t_or_f = upload(isbn13, img_url)
+                    t_or_f = await upload(isbn13, img_url)
                     if t_or_f:
                         cover = f"{isbn13}.jpg"
                     else:
@@ -95,13 +107,10 @@ async def do_request_task(mongo_object_id: str):
                 )
                 await mongo_db.engine.save(book)
 
-                request_object.response_date = response_time
                 request_object.response_id = str(book.id)
-                request_object.result_code = 201
+                request_object.status_code = 201
                 await mongo_db.engine.save(request_object)
 
             else:
-                response_time = datetime.datetime.now()
-                request_object.response_date = response_time
-                request_object.result_code = 404
+                request_object.status_code = 404
                 await mongo_db.engine.save(request_object)
