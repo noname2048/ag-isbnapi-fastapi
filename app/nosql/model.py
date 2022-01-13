@@ -1,4 +1,4 @@
-from typing import Collection, Optional
+from typing import Collection, Optional, Union
 from odmantic import Model
 from datetime import datetime
 
@@ -6,6 +6,21 @@ from datetime import datetime
 class TimeStampModel(Model):
     created_at: datetime
     updated_at: datetime
+
+
+class Request(Model):
+    # id(str) will default
+    isbn13: int
+    state_code: int
+
+    response_type: Optional[str]  # error, book
+    response_id: Optional[int]
+
+    created_at: datetime
+    answered_at: Union[datetime, None]
+
+    class Config:
+        collection = "requests"
 
 
 class Book(Model):
@@ -19,29 +34,19 @@ class Book(Model):
     pub_date: datetime
     author: str
 
-    created_at: Optional[datetime]
+    created_at: datetime
+    updated_at: Optional[datetime]
 
     class Config:
         collection = "books"
 
 
-class Request(Model):
+class ErrorReport(Model):
     # id(str) will default
     isbn13: int
-    request_date: datetime
-    result_code: int
-    response_id: Optional[int]
-    response_date: Optional[datetime]
-
-    class Config:
-        collection = "requests"
-
-
-class Response(Model):
-    # id(str) will default
-    isbn13: int
-    response_date: datetime
     request_id: str
+    created_at: datetime
+    data: Optional[Union[dict, str]]
 
     class Config:
-        collection = "responses"
+        collection = "errors"
