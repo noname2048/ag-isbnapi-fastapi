@@ -2,6 +2,22 @@ from config import get_secret
 from typing import Optional
 import aiohttp
 import asyncio
+import os
+import aiofiles
+
+
+async def img_downloader(session, img):
+    image_name = img.splite("/")[-1].split("?")[0]
+    try:
+        os.mkdir("./images")
+    except FileExistsError:
+        pass
+
+    async with session.get(img) as response:
+        if response.status == 200:
+            async with aiofiles.open(f"./images/{image_name}", mode="wb") as file:
+                img_data = await response.read()
+                await file.write(img_data)
 
 
 async def fetch(session: aiohttp.ClientSession, url: str, i: int):
