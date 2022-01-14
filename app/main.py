@@ -27,6 +27,16 @@ app.add_middleware(
     allow_headers=["*"],
 )
 app.include_router(router)
+
+
+async def startup():
+    await connect_db()
+
+
+async def shutdown():
+    await close_db()
+
+
 app.add_event_handler("startup", connect_db)
 app.add_event_handler("shutdown", close_db)
 

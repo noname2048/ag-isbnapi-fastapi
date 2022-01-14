@@ -1,5 +1,5 @@
 from app.nosql import mongo_db
-from app.nosql.model import Request, Response, Book
+from app.nosql.model import Request
 from typing import List
 from app.task.aladin_api import do_request_task
 import logging

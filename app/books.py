@@ -2,7 +2,7 @@ from typing import Optional, List, Final
 from fastapi import APIRouter, Query, Path, HTTPException, Body, BackgroundTasks
 
 from app.nosql import mongo_db
-from app.nosql.model import Book, Request, Response
+from app.nosql.model import Book, Request
 import regex
 import datetime
 from app.task.aladin_api import do_request_task
@@ -182,31 +182,31 @@ async def books_reqeusts_response(id: str = Path(...)):
         raise HTTPException(status_code=404, detail="No Requests found, have id({id})")
 
 
-@router.get("/responses", tags=["responses"])
-async def books_response_list(limit: Optional[int] = Query(10, le=100)):
-    ret = await mongo_db.engine.find(Response, Response.date.desc(), limit=limit)
-    return ret
+# @router.get("/responses", tags=["responses"])
+# async def books_response_list(limit: Optional[int] = Query(10, le=100)):
+#     ret = await mongo_db.engine.find(Response, Response.date.desc(), limit=limit)
+#     return ret
 
 
-@router.get("/responses/{id}", tags=["responses"])
-async def books_response_detail(id: str = Path(...)):
-    response = await mongo_db.engine.find_one(Response, Response.id.match(id))
-    if response:
-        return response
-    else:
-        raise HTTPException(status_code=404, detail="No Response Found, have id({id})")
+# @router.get("/responses/{id}", tags=["responses"])
+# async def books_response_detail(id: str = Path(...)):
+#     response = await mongo_db.engine.find_one(Response, Response.id.match(id))
+#     if response:
+#         return response
+#     else:
+#         raise HTTPException(status_code=404, detail="No Response Found, have id({id})")
 
 
-@router.get("/responses/{id}/request", tags=["responses"])
-async def books_responses_request(id: str = Path(...)):
-    response = await mongo_db.engine.find_one(Response, Response.id.match(id))
-    if response:
-        request = await mongo_db.engine.find_one(
-            Request, Request.id.match(response.request_id)
-        )
-        if request:
-            return request
-        else:
-            raise HTTPException(status_code=500, detail="Somethings go wrong.")
-    else:
-        raise HTTPException(status_code=404, detail="No Response Found, have id({id})")
+# @router.get("/responses/{id}/request", tags=["responses"])
+# async def books_responses_request(id: str = Path(...)):
+#     response = await mongo_db.engine.find_one(Response, Response.id.match(id))
+#     if response:
+#         request = await mongo_db.engine.find_one(
+#             Request, Request.id.match(response.request_id)
+#         )
+#         if request:
+#             return request
+#         else:
+#             raise HTTPException(status_code=500, detail="Somethings go wrong.")
+#     else:
+#         raise HTTPException(status_code=404, detail="No Response Found, have id({id})")
