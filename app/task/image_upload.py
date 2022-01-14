@@ -4,7 +4,7 @@ import boto3
 from app.settings import config
 
 
-async def upload(isbn13: int, img_url: HttpUrl) -> bool:
+async def upload(isbn13: int, img_url: HttpUrl):
     """img url을 받아 S3에 업로드 한후 결과를 리턴하는 함수"""
 
     async with aiohttp.ClientSession() as session:
