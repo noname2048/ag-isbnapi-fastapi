@@ -1,22 +1,26 @@
-from typing import Collection, Optional, Union
-from odmantic import Model
+from odmantic import EmbeddedModel, Model
+from typing import Optional, List, Any
 from datetime import datetime
 
 
-class TimeStampModel(Model):
+class Response(EmbeddedModel):
+    isbn13: int
     created_at: datetime
-    updated_at: datetime
+
+    status: str  # "success" | "fail"
+    get_response: bool
+    json_serialize: bool
+    db_serialize: bool
+    detail: Any
+
+    class Config:
+        collection = "responses"
 
 
 class Request(Model):
-    # id(str) will default
     isbn13: int
-    status_code: int
-
-    response_type: Optional[str]  # error, book
-    response_id: Optional[int]
-
     created_at: datetime
+    response: Response
 
     class Config:
         collection = "requests"
@@ -38,14 +42,3 @@ class Book(Model):
 
     class Config:
         collection = "books"
-
-
-class ErrorReport(Model):
-    # id(str) will default
-    isbn13: int
-    request_id: str
-    created_at: datetime
-    data: Optional[str]
-
-    class Config:
-        collection = "errors"
