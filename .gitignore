@@ -13,3 +13,6 @@ __pycache__
 
 # naver api secret
 naver_api_client.json
+
+background.log
+tmp/
