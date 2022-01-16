@@ -7,10 +7,7 @@ class Response(EmbeddedModel):
     isbn13: int
     created_at: datetime
 
-    status: str  # "success" | "fail"
-    get_response: bool
-    json_serialize: bool
-    db_serialize: bool
+    success: bool
     detail: Any
 
     class Config:
