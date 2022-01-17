@@ -35,9 +35,10 @@ class _MongoDB:
             self.client = None
 
     @property
-    async def engine(self):
+    def engine(self):
         if not self.client:
-            await self.connect()
+            loop = asyncio.get_event_loop()
+            loop.run_in_executor(None, self.connect)
 
         return self.__engine
 
@@ -45,9 +46,11 @@ class _MongoDB:
     def engine(self, value):
         self.__engine = value
 
-    async def __del__(self):
+    def __del__(self):
         if self.client:
-            await self.disconnect()
+            self.disconnect()
+            loop = asyncio.get_event_loop()
+            loop.run_in_executor(None, self.disconnect)
 
 
 mongo_db = _MongoDB()
