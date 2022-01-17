@@ -16,41 +16,27 @@ except KeyError:
 class _MongoDB:
     def __init__(self):
         self.client = None
-        self.__engine = None
+        self.engine = None
 
-    async def connect(self) -> AsyncIOMotorClient:
+    def connect(self) -> AsyncIOMotorClient:
         if not self.client:
             self.client = AsyncIOMotorClient(
                 f"mongodb+srv://{_mongo_db_user}:{_mongo_db_password}@cluster0.zywhp.mongodb.net/{_mongo_db_name}?retryWrites=true&w=majority"
             )
-            self.__engine = AIOEngine(
+            self.engine = AIOEngine(
                 motor_client=self.client, database=f"{_mongo_db_name}"
             )
             return self.client
         return self.client
 
-    async def disconnect(self):
+    def disconnect(self):
         if self.client:
             self.client.close()
             self.client = None
 
-    @property
-    def engine(self):
-        if not self.client:
-            loop = asyncio.get_event_loop()
-            loop.run_in_executor(None, self.connect)
-
-        return self.__engine
-
-    @engine.setter
-    def engine(self, value):
-        self.__engine = value
-
     def __del__(self):
         if self.client:
             self.disconnect()
-            loop = asyncio.get_event_loop()
-            loop.run_in_executor(None, self.disconnect)
 
 
 mongo_db = _MongoDB()

@@ -1,3 +1,4 @@
+import asyncio
 import uvicorn
 from fastapi import FastAPI, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
@@ -37,8 +38,8 @@ async def shutdown():
     await close_db()
 
 
-app.add_event_handler("startup", connect_db)
-app.add_event_handler("shutdown", close_db)
+# app.add_event_handler("startup", connect_db)
+# app.add_event_handler("shutdown", close_db)
 
 app.scheduler = AsyncIOScheduler(timezone="Asia/Seoul")
 app.scheduler.add_job(find_not_responded_request, "interval", minutes=1)
@@ -51,4 +52,11 @@ async def hello():
 
 
 if __name__ == "__main__":
-    uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True, workers=4)
+    loop = asyncio.get_event_loop()
+    config = uvicorn.Config(
+        "app.main:app", host="0.0.0.0", port=8000, reload=True, workers=4
+    )
+    server = uvicorn.Server(config)
+    loop.run_until_complete(server.serve())
+
+    # uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True, workers=4)
