@@ -3,7 +3,7 @@ from app.settings import config
 
 from motor.motor_asyncio import AsyncIOMotorClient
 from odmantic import AIOEngine
-
+import asyncio
 
 try:
     _mongo_db_name = config.get("MONGO_DB")
@@ -16,14 +16,14 @@ except KeyError:
 class _MongoDB:
     def __init__(self):
         self.client = None
-        self.engine = None
+        self.__engine = None
 
     async def connect(self) -> AsyncIOMotorClient:
         if not self.client:
             self.client = AsyncIOMotorClient(
                 f"mongodb+srv://{_mongo_db_user}:{_mongo_db_password}@cluster0.zywhp.mongodb.net/{_mongo_db_name}?retryWrites=true&w=majority"
             )
-            self.engine = AIOEngine(
+            self.__engine = AIOEngine(
                 motor_client=self.client, database=f"{_mongo_db_name}"
             )
             return self.client
@@ -34,9 +34,20 @@ class _MongoDB:
             self.client.close()
             self.client = None
 
-    def __del__(self):
+    @property
+    async def engine(self):
+        if not self.client:
+            await self.connect()
+
+        return self.__engine
+
+    @engine.setter
+    def engine(self, value):
+        self.__engine = value
+
+    async def __del__(self):
         if self.client:
-            self.disconnect()
+            await self.disconnect()
 
 
 mongo_db = _MongoDB()
