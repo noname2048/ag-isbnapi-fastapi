@@ -7,7 +7,7 @@ class Response(EmbeddedModel):
     isbn13: int
     created_at: datetime
 
-    success: bool
+    success: Optional[bool]
     detail: Any
 
     class Config:
@@ -17,7 +17,7 @@ class Response(EmbeddedModel):
 class Request(Model):
     isbn13: int
     created_at: datetime
-    response_id: str
+    response_id: Optional[str]
     response: Optional[Response]
 
     class Config:
