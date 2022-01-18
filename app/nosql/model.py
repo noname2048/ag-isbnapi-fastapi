@@ -17,7 +17,8 @@ class Response(EmbeddedModel):
 class Request(Model):
     isbn13: int
     created_at: datetime
-    response: Response
+    response_id: str
+    response: Optional[Response]
 
     class Config:
         collection = "requests"
@@ -33,6 +34,7 @@ class Book(Model):
     price: int
     pub_date: datetime
     author: str
+    response_id: str
 
     created_at: datetime
     updated_at: Optional[datetime]

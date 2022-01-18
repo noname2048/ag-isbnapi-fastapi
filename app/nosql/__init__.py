@@ -1,16 +1,41 @@
+import asyncio
+from bson import ObjectId
+
 from app.settings.base import REPO_DIR
 from app.settings import config
 
 from motor.motor_asyncio import AsyncIOMotorClient
 from odmantic import AIOEngine
-import asyncio
 
 try:
     _mongo_db_name = config.get("MONGO_DB")
     _mongo_db_password = config.get("MONGO_PASSWORD")
     _mongo_db_user = config.get("MONGO_USER")
+    _mongo_db_url = config["MONGO_URL"]
 except KeyError:
     raise EnvironmentError("cannot find MONGO_DB from '.env' file")
+
+
+class MoterMongo:
+    def __init__(self):
+        self.client = AsyncIOMotorClient(_mongo_db_url)
+        self.db = self.client.isbn
+
+
+class PyObjectId(ObjectId):
+    @classmethod
+    def __get_validators__(cls):
+        yield cls.validate
+
+    @classmethod
+    def validate(cls, v):
+        if not ObjectId.is_valid(v):
+            raise ValueError("Invalid objectid")
+        return ObjectId(v)
+
+    @classmethod
+    def __modify_schema__(cls, field_schema):
+        field_schema.update(type="string")
 
 
 class _MongoDB:
