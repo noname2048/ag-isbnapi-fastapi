@@ -5,9 +5,9 @@ from app.nosql.odmantic.model import Request, Response, Book
 
 
 async def clear_models(model: Model):
-    instance_list = await mongo_db.engine.find(model)
+    instance_list = await mongo_db.engine.find(model, {})
     for instance in instance_list:
-        mongo_db.engine.delete(instance)
+        await mongo_db.engine.delete(instance)
 
 
 async def clear_all():
