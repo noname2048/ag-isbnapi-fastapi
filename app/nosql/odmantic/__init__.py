@@ -43,6 +43,10 @@ class _MongoDB:
         self.client = None
         self.engine = None
 
+    def __del__(self):
+        if self.client:
+            self.disconnect()
+
     def connect(self) -> AsyncIOMotorClient:
         if not self.client:
             self.client = AsyncIOMotorClient(
@@ -59,9 +63,15 @@ class _MongoDB:
             self.client.close()
             self.client = None
 
-    def __del__(self):
-        if self.client:
-            self.disconnect()
+    def __enter__(self):
+        self.connect()
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.disconnect()
+        if exc_type:
+            return False
+        return True
 
 
 mongo_db = _MongoDB()
