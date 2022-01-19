@@ -9,6 +9,7 @@ get_res, json_serializer, db_serializer, get_image, image_upload
 import asyncio
 from datetime import datetime
 import json
+from re import I
 from typing import Dict
 from urllib import request
 
@@ -22,8 +23,14 @@ from app.nosql.odmantic.model import Request, Response, Book
 from app.nosql.odmantic.util import clear_all
 
 
+class MyException(Exception):
+    """aladin_to_s3 에서 Response를 만들 때, 에러처리를 위한 예외"""
+
+    pass
+
+
 async def get_text(isbn13):
-    text, detail = None, None
+    text = None
     async with aiohttp.ClientSession() as session:
         async with session.post(
             "http://www.aladin.co.kr/ttb/api/ItemLookUp.aspx",
@@ -40,11 +47,11 @@ async def get_text(isbn13):
                 return text, detail
             else:
                 text = await response.text()
-                return text, detail
+                return text
 
 
 async def get_item(text):
-    data_dict, detail = None, None
+    data_dict = None
     corrected_text = text[:-1]
     try:
         data_dict = json.loads(corrected_text, strict=False)
@@ -52,36 +59,42 @@ async def get_item(text):
 
     except json.JSONDecodeError:
         detail = corrected_text
+        raise MyException(detail)
 
     except KeyError as e:
         detail = f"KeyError: {e}"
+        raise MyException(detail)
 
     except IndexError as e:
         detail = f"IndexError: {e}"
+        raise MyException(detail)
 
-    return item, detail
+    return item
 
 
-async def get_book(item):
-    book, detail = None, None
-    book = Book(
-        title=item["title"],
-        description=item["description"],
-        isbn13=item["isbn13"],
-        cover=item["cover"],
-        publisher=item["publisher"],
-        price=item["priceStandard"],
-        pub_date=datetime.strptime(item["pubDate"], "%Y-%m-%d"),
-        author=item["author"],
-        created_at=datetime.now(),
-    )
+async def get_book(item) -> dict:
+    book = None
+    try:
+        book = {
+            "title": item["title"],
+            "description": item["description"],
+            "isbn13": item["isbn13"],
+            "cover": item["cover"],
+            "publisher": item["publisher"],
+            "price": item["priceStandard"],
+            "pub_date": datetime.strptime(item["pubDate"], "%Y-%m-%d"),
+            "author": item["author"],
+            "created_at": datetime.now(),
+        }
+    except KeyError as e:
+        raise MyException(get_book.__name__, f"{get_book.__name__}에서 KeyError {e} 발생")
 
-    return book, detail
+    return book
 
 
 async def get_image(target_url):
     """url정보를 통해서 이미를 가져오는 함수"""
-    image, detail = None, None
+    image = None
     async with aiohttp.ClientSession() as session:
         async with session.get(target_url) as response:
             if response.status != 200:
@@ -89,76 +102,69 @@ async def get_image(target_url):
             else:
                 image = await response.read()
 
-    return image, detail
+    return image
 
 
-async def get_url(image, name: str):
+async def get_url(image, name: str, save=False):
     """이미지 객체를 받아 S3에 저장하는 함수
     파일명을 추가 함수로 받습니다.
     """
-    url, detail = None, None
+    url = None
 
-    # s3 = boto3.session.Session().client(
-    #     "s3",
-    #     region_name="ap-northeast-2",
-    #     aws_access_key_id=config["aws_id"],
-    #     aws_secret_access_key=config["aws_key"],
-    # )
+    if save:
+        s3 = boto3.session.Session().client(
+            "s3",
+            region_name="ap-northeast-2",
+            aws_access_key_id=config["aws_id"],
+            aws_secret_access_key=config["aws_key"],
+        )
 
-    # uploaded = s3.put_object(
-    #     Body=image,
-    #     Bucket="job-book-image",
-    #     Key=name,
-    # )
+        uploaded = s3.put_object(
+            Body=image,
+            Bucket="job-book-image",
+            Key=name,
+        )
 
-    # if uploaded:
-    #     print(uploaded["ResponseMetadata"]["HTTPStatusCode"])
+        if uploaded:
+            print(uploaded["ResponseMetadata"]["HTTPStatusCode"])
 
     url = name
-    return url, detail
+    return url
 
 
-async def make_response(isbn13):
-    response = Response(
-        isbn13=isbn13,
-        success=False,
-        created_at=datetime.datetime.now(),
-    )
-
-    class MyException(Exception):
-        pass
+async def make_response(request: Request):
+    isbn13 = request.isbn13
+    response = {
+        "isbn13": isbn13,
+        "success": False,
+        "created_at": datetime.now(),
+        "request_id": request.id,
+    }
 
     try:
-        text, detail = await get_text(isbn13)
-        if not text:
-            raise MyException(detail)
-
-        item, detail = await get_item(text)
-        if not item:
-            raise MyException(detail)
-
-        book, detail = await get_book(item)
-        if not book:
-            raise MyException(detail)
-
-        image, detail = await get_image(book.cover)
-        if not image:
-            raise MyException(detail)
-
-        url, detail = await get_url(image, f"{isbn13}.jpg")
-        if not url:
-            raise MyException(detail)
-
+        text = await get_text(isbn13)
+        item = await get_item(text)
+        book = await get_book(item)
+        image = await get_image(book.cover)
+        url = await get_url(image, f"{isbn13}.jpg")
     except MyException as e:
         detail = e.args
-        response.detail = detail
+        response["detail"] = detail
+        response["created_at"] = datetime.now()
+        response = Response(**response)
+        response = await mongo_db.engine.save(response)
 
-    response.success = True
-    response.created_at = datetime.now()
+        return response
+
+    response["success"] = True
+    response["created_at"] = datetime.now()
+    response = Response(**response)
     response = await mongo_db.engine.save(response)
 
-    book.cover = url
-    book.created_at = datetime.now()
+    book["cover"] = url
+    book["response_id"] = response.id
+    book["created_at"] = datetime.now()
+    book = Book(**book)
     book = await mongo_db.engine.save(book)
 
     return response
@@ -175,8 +181,8 @@ async def main():
     isbn13 = 9791158390983
     request = Request(isbn13=isbn13, created_at=datetime.now())
     await mongo_db.engine.save(request)
-    response = await make_response(isbn13)
-    mongo_db.close()
+    response = await make_response(request)
+    mongo_db.disconnect()
 
 
 if __name__ == "__main__":
