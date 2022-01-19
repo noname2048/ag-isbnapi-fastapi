@@ -145,7 +145,7 @@ async def make_response(request: Request):
         text = await get_text(isbn13)
         item = await get_item(text)
         book = await get_book(item)
-        image = await get_image(book.cover)
+        image = await get_image(book["cover"])
         url = await get_url(image, f"{isbn13}.jpg")
     except MyException as e:
         detail = e.args
@@ -177,7 +177,7 @@ def make_request(isbn13):
 
 async def main():
     mongo_db.connect()
-    await clear_all()
+    # await clear_all()
     isbn13 = 9791158390983
     request = Request(isbn13=isbn13, created_at=datetime.now())
     await mongo_db.engine.save(request)
