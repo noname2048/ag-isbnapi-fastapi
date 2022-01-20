@@ -147,6 +147,7 @@ async def make_response(request: Request):
         book = await get_book(item)
         image = await get_image(book["cover"])
         url = await get_url(image, f"{isbn13}.jpg")
+
     except MyException as e:
         detail = e.args
         response["detail"] = detail
@@ -154,12 +155,18 @@ async def make_response(request: Request):
         response = Response(**response)
         response = await mongo_db.engine.save(response)
 
+        request.response_id = response.id
+        request = await mongo_db.engine.save(request)
+
         return response
 
     response["success"] = True
     response["created_at"] = datetime.now()
     response = Response(**response)
     response = await mongo_db.engine.save(response)
+
+    request.response_id = response.id
+    request = await mongo_db.engine.save(request)
 
     book["cover"] = url
     book["response_id"] = response.id
@@ -170,19 +177,15 @@ async def make_response(request: Request):
     return response
 
 
-def make_request(isbn13):
-    request = Request(isbn13=isbn13, created_at=datetime.now())
-    return request
-
-
 async def main():
-    mongo_db.connect()
-    # await clear_all()
-    isbn13 = 9791158390983
-    request = Request(isbn13=isbn13, created_at=datetime.now())
-    await mongo_db.engine.save(request)
-    response = await make_response(request)
-    mongo_db.disconnect()
+    # mongo_db.connect()
+    # # await clear_all()
+    # isbn13 = 9791158390983
+    # request = Request(isbn13=isbn13, created_at=datetime.now())
+    # await mongo_db.engine.save(request)
+    # response = await make_response(request)
+    # mongo_db.disconnect()
+    pass
 
 
 if __name__ == "__main__":
