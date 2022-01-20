@@ -1,9 +1,11 @@
-import aiohttp
-from app.settings import config
-import json
-from app.nosql import mongo_db
-from app.nosql.model import Request, Book, ErrorReport
 import datetime
+import json
+
+import aiohttp
+
+from app.settings import config
+from app.nosql.odmantic import mongo_db
+from app.nosql.odmantic.model import Request, Response, Book
 from app.task.image_upload import upload
 
 ALADIN_API_URL = "http://www.aladin.co.kr/ttb/api/ItemLookUp.aspx"
