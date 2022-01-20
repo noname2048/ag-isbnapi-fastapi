@@ -1,13 +1,15 @@
+from datetime import datetime, timedelta
 import asyncio
 import uvicorn
 from fastapi import FastAPI, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.books import router as books_router
-from app.nosql import connect_db, close_db
+from app.nosql.odmantic import connect_db, close_db
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from app.task.myscheduler import find_not_responded_request
+
+# from app.task.myscheduler import find_not_responded_request
 
 router = APIRouter(tags=["api/v1"], prefix="/api/v1")
 router.include_router(books_router, tags=["books"], prefix="/books")
@@ -31,6 +33,12 @@ app.include_router(router)
 
 
 async def startup():
+    at = datetime.now()
+    print(f"server starts at {datetime.now()}")
+    app.scheduler = AsyncIOScheduler(timezone="Asia/Seoul")
+    app.scheduler.add_job(simple_print, "date", run_date=at + timedelta(seconds=30))
+    app.scheduler.add_job(simple_print, "cron", second=20)
+    # app.scheduler.add_job(find_not_responded_request, "interval", minutes=1)
     await connect_db()
 
 
@@ -38,12 +46,12 @@ async def shutdown():
     await close_db()
 
 
-# app.add_event_handler("startup", connect_db)
-# app.add_event_handler("shutdown", close_db)
+app.add_event_handler("startup", connect_db)
+app.add_event_handler("shutdown", close_db)
 
-app.scheduler = AsyncIOScheduler(timezone="Asia/Seoul")
-app.scheduler.add_job(find_not_responded_request, "interval", minutes=1)
-app.scheduler.start()
+
+async def simple_print():
+    print("background task: ", datetime.now())
 
 
 @app.get("/")
@@ -52,11 +60,11 @@ async def hello():
 
 
 if __name__ == "__main__":
-    loop = asyncio.get_event_loop()
-    config = uvicorn.Config(
-        "app.main:app", host="0.0.0.0", port=8000, reload=True, workers=4
-    )
-    server = uvicorn.Server(config)
-    loop.run_until_complete(server.serve())
+    # loop = asyncio.get_event_loop()
+    # config = uvicorn.Config(
+    #     "app.main:app", host="0.0.0.0", port=8000, reload=True, workers=4
+    # )
+    # server = uvicorn.Server(config)
+    # loop.run_until_complete(server.serve())
 
-    # uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True, workers=4)
+    uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True, workers=4)
