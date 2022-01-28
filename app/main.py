@@ -1,15 +1,18 @@
 from datetime import datetime, timedelta
 import asyncio
 import uvicorn
+
 from fastapi import FastAPI, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.books import router as books_router
 from app.nosql.odmantic import connect_db, close_db
+from app.common.config import conf
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 # from app.task.myscheduler import find_not_responded_request
+
 
 router = APIRouter(tags=["api/v1"], prefix="/api/v1")
 router.include_router(books_router, tags=["books"], prefix="/books")
@@ -35,10 +38,12 @@ app.include_router(router)
 async def startup():
     at = datetime.now()
     print(f"server starts at {datetime.now()}")
-    app.scheduler = AsyncIOScheduler(timezone="Asia/Seoul")
-    app.scheduler.add_job(simple_print, "date", run_date=at + timedelta(seconds=30))
-    app.scheduler.add_job(simple_print, "cron", second=20)
-    # app.scheduler.add_job(find_not_responded_request, "interval", minutes=1)
+
+    # app.scheduler = AsyncIOScheduler(timezone="Asia/Seoul")
+    # app.scheduler.add_job(simple_print, "date", run_date=at + timedelta(seconds=30))
+    # app.scheduler.add_job(simple_print, "cron", second=20)
+
+    # # app.scheduler.add_job(find_not_responded_request, "interval", minutes=1)
     await connect_db()
 
 
@@ -68,3 +73,14 @@ if __name__ == "__main__":
     # loop.run_until_complete(server.serve())
 
     uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True, workers=4)
+
+
+def create_app():
+    """fastapi 앱을 만드는 함수"""
+    c = conf()
+    app = FastAPI()
+    # DB
+    # redis
+    # middleware
+    # router
+    return app
