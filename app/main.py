@@ -82,5 +82,21 @@ def create_app():
     # DB
     # redis
     # middleware
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=[
+            "http://localhost:3000",
+            "http://localhost:8000",
+            "http://localhost",
+        ],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
     # router
+    app.router.include_router(books_router, tags=["books"], prefix="/books")
     return app
+
+
+if False:
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
