@@ -31,6 +31,7 @@ cchardet = "^2.1.7"
 pytest = "^6.2.5"
 boto3 = "^1.20.24"
 APScheduler = "^3.8.1"
+asyncpg = "^0.25.0"
 
 [tool.poetry.dev-dependencies]
 jupyterlab = "^3.0.16"
