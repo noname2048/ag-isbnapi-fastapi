@@ -22,6 +22,7 @@ class BaseMixin:
     )
 
     def all_columns(self):
+        """create 함수를 위한 utils"""
         return [
             c
             for c in self.__table__.columns
@@ -32,6 +33,14 @@ class BaseMixin:
         return hash(self.id)
 
     def create(self, session: Session, auto_commit=False, **kwargs):
+        """
+        테이블 데이터 적재 전용 함수
+
+        :param session:
+        :param auto_commit: 자동 커밋 여부
+        :param kwargs: 적재 할 데이터
+        :return:
+        """
         for col in self.all_columns():
             col_name = col.name
             if col_name in kwargs:
@@ -51,5 +60,7 @@ class Users(Base, BaseMixin):
     name = Column(String(length=255), nullable=False)
     phone_number = Column(String(length=20), nullable=True, unique=True)
     profile_img = Column(String(length=1000), nullable=True)
-    sns_type = Column(Enum("FB", "G", "N"), nullable=True)
+    sns_type = Column(
+        Enum("facebook", "google", "kakao", "naver", "apple"), nullable=True
+    )
     marketing_agree = Column(Boolean, nullable=True, default=True)
