@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 from starlette.responses import Response
 from sqlalchemy.orm import Session
 
@@ -11,20 +11,21 @@ router = APIRouter()
 
 
 @router.get("/")
-async def index(
-    session: Session = Depends(db.session),
-):
+async def index():
+    current_time = datetime.utcnow()
+    return Response(
+        f"Notification API (UTC: {current_time.strftime('%Y.%m.%d %H:%M:%S')}"
+    )
+
+
+@router.get("/health")
+async def health(request: Request):
     """
     ELB 상태 체크용 API
 
     :return:
     """
-    if False:
-        user = Users(status="active")
-        session.add(user)
-        session.commit()
-
-    Users().create(session, auto_commit=True, name="코알라")
+    print("state.user", request.state.user)
     current_time = datetime.utcnow()
     return Response(
         f"Notification API (UTC: {current_time.strftime('%Y.%m.%d %H:%M:%S')}"
