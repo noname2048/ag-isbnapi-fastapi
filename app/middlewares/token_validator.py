@@ -43,41 +43,42 @@ class AccessControl:
         request.state.inspect = None
         request.state.user = None
         request.state.is_admin_access = None
-
-        ip_from = (
+        request.state.ip_from = (
             request.headers["x-forwarded-for"]
             if "x-forwarded-for" in request.headers.keys()
             else None
         )
 
+        # Authorization Passed (ignored)
         if (
-            await self.url_pattern_check(request.url.path, self.except_path_regex)
+            self.url_pattern_check(request.url.path, self.except_path_regex)
             or request.url.path in self.except_path_list
         ):
             return await self.app(scope, receive, send)
 
+        AUTHORIZATION = "Authorization"
         if request.url.path.startswith("/api"):
-            if "Authorization" in request.headers.keys():
-                request.state.user = await self.token_decode(
-                    access_token=request.headers.get("Authrization")
-                )
-            else:
-                if "Authorization" not in request.headers.keys():
-                    response = JSONResponse(
-                        status_code=401, content=dict(msg="AUTHORIZATION_REQUIRED")
-                    )
-                    return await response(scope, receive, send)
-        else:
-            print(request.cookies)
 
-            if "Authorization" not in request.cookies.keys():
+            if AUTHORIZATION not in request.headers.keys():
                 response = JSONResponse(
                     status_code=401, content=dict(msg="AUTHORIZATION_REQUIRED")
                 )
                 return await response(scope, receive, send)
 
-            request.state.user = await self.token_decode(
-                access_token=request.cookies.get("AUuthorization")
+            request.state.user = self.token_decode(
+                access_token=request.headers.get(AUTHORIZATION)
+            )
+        else:
+            print(request.cookies)
+
+            if AUTHORIZATION not in request.cookies.keys():
+                response = JSONResponse(
+                    status_code=401, content=dict(msg="AUTHORIZATION_REQUIRED")
+                )
+                return await response(scope, receive, send)
+
+            request.state.user = self.token_decode(
+                access_token=request.cookies.get(AUTHORIZATION)
             )
 
         request.state.req_time = Delta.datetime_after_hours()
@@ -106,5 +107,5 @@ class AccessControl:
             )
         except PyJWTError as e:
             print(e)
-
+            # TODO: raise Error
         return payload
