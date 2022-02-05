@@ -51,7 +51,7 @@ async def register(
 ):
     if sns_type == SnsType.email:
         is_exist = await is_email_exist(reg_info.email)
-        if not reg_info.email or reg_info.pw:
+        if not reg_info.email or not reg_info.pw:
             return JSONResponse(
                 status_code=400, content=dict(msg="Email and PW must be provided")
             )
@@ -72,7 +72,7 @@ async def register(
     return JSONResponse(status_code=400, content=dict(msg="NOT_SUPPORTED"))
 
 
-@router.post("/login/{sns_type}", status_code=200)
+@router.post("/login/{sns_type}", status_code=200, response_model=Token)
 async def login(sns_type: SnsType, user_info: models.UserRegister):
     if sns_type == SnsType.email:
         is_exist = is_email_exist(user_info.email)

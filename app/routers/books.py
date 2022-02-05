@@ -1,3 +1,5 @@
+"""
+"""
 from typing import Optional
 from fastapi import APIRouter
 from fastapi import Query
@@ -32,7 +34,7 @@ async def books_search(
         return result
 
     if title:
-        result = await mongo_db.engin.find(Book, query.match(Book.title, title))
+        result = await mongo_db.engine.find(Book, query.match(Book.title, title))
         return result
 
 
