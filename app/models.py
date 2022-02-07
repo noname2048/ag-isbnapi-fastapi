@@ -31,3 +31,14 @@ class UserToken(BaseModel):
 
     class Config:
         orm_mode = True
+
+
+class UserMe(BaseModel):
+    id: int
+    email: str = None
+    phone_number: str = None
+    profile_img: str = None
+    sns_type: str = None
+
+    class Config:
+        orm_mode = True

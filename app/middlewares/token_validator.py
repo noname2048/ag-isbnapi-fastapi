@@ -13,7 +13,6 @@ from starlette.responses import PlainTextResponse, RedirectResponse, Response
 from starlette.types import ASGIApp, Receive, Scope, Send
 
 from app.common import config, consts
-from app.common.config import conf
 from app.models import UserToken
 
 from app.utils.date_utils import Delta

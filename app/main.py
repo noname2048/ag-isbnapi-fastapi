@@ -1,102 +1,71 @@
 from datetime import datetime, timedelta
-import asyncio
+from dataclasses import asdict
+
 import uvicorn
 
 from fastapi import FastAPI, APIRouter
+from fastapi.security import APIKeyHeader
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.books import router as books_router
-from app.nosql.odmantic import connect_db, close_db
-from app.common.config import conf
-
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
-
-# from app.task.myscheduler import find_not_responded_request
+from app.common.config import get_config
+from app.middlewares.token_validator import AccessControl
+from app.middlewares.trusted_host import TrustedHostMiddleware
+from app.database.conn import db
+from app.routes import index  # , books, auth, users
 
 
-router = APIRouter(tags=["api/v1"], prefix="/api/v1")
-router.include_router(books_router, tags=["books"], prefix="/books")
+API_KEY_HEADER = APIKeyHeader(name="Authorization", auto_error=False)
 
 
-origins = [
-    "http://localhost:3000",
-    "http://localhost:8000",
-    "http://localhost",
-]
+def create_app() -> FastAPI:
+    """fastapi 앱을 만드는 함수
 
-app = FastAPI()
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-app.include_router(router)
-
-
-async def startup():
-    at = datetime.now()
-    print(f"server starts at {datetime.now()}")
-
-    # app.scheduler = AsyncIOScheduler(timezone="Asia/Seoul")
-    # app.scheduler.add_job(simple_print, "date", run_date=at + timedelta(seconds=30))
-    # app.scheduler.add_job(simple_print, "cron", second=20)
-
-    # # app.scheduler.add_job(find_not_responded_request, "interval", minutes=1)
-    await connect_db()
-
-
-async def shutdown():
-    await close_db()
-
-
-app.add_event_handler("startup", connect_db)
-app.add_event_handler("shutdown", close_db)
-
-
-async def simple_print():
-    print("background task: ", datetime.now())
-
-
-@app.get("/")
-async def hello():
-    return {"messege": "hello"}
-
-
-if __name__ == "__main__":
-    # loop = asyncio.get_event_loop()
-    # config = uvicorn.Config(
-    #     "app.main:app", host="0.0.0.0", port=8000, reload=True, workers=4
-    # )
-    # server = uvicorn.Server(config)
-    # loop.run_until_complete(server.serve())
-
-    uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True, workers=4)
-
-
-def create_app():
-    """fastapi 앱을 만드는 함수"""
-    c = conf()
+    :return: FastAPI app
+    """
+    # config
+    c = get_config()
+    conf_dict = asdict(c)
+    # app
     app = FastAPI()
     # DB
+    # db.init_app(app, **conf_dict)
     # redis
     # middleware
     app.add_middleware(
+        AccessControl,
+        except_path_list=[],
+        except_path_regex="",
+    )
+    app.add_middleware(
         CORSMiddleware,
-        allow_origins=[
-            "http://localhost:3000",
-            "http://localhost:8000",
-            "http://localhost",
-        ],
+        allow_origins=c.ALLOWED_ORIGIN,
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
     )
-    # router
-    app.router.include_router(books_router, tags=["books"], prefix="/books")
+    app.add_middleware(
+        TrustedHostMiddleware,
+        allowed_hosts=["*"],
+        except_path=["/health"],
+    )
+    # routes
+    app.include_router(index.router)
+    # app.include_router(books.router, tags=["books", "api"], prefix="/api/v1/books")
+    # app.include_router(
+    #     auth.router,
+    #     tags=["Authentication"],
+    #     prefix="/api/v1",
+    # )
+    # app.include_router(
+    #     users.router,
+    #     tags=["Users"],
+    #     prefix="/api/v1",
+    #     dependencies=Depends(API_KEY_HEADER),
+    # )
     return app
 
 
-if False:
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+app = create_app()
+
+if __name__ == "__main__":
+    uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)

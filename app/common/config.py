@@ -32,6 +32,7 @@ class LocalConfig(Config):
     )
     POSTGRES_ECHO: bool = True
     MONGODB_URL: str = ()
+    TRUSTED_HOSTS = ["*"]
 
 
 @dataclass
@@ -39,13 +40,14 @@ class ProdConfig(Config):
     pass
 
 
+@lru_cache()
 def get_config() -> Union[LocalConfig, ProdConfig]:
     """
     API_ENV 설정에 따라 설정값을 가져옵니다. (default=local)
 
     :return: LocalConfig | ProdConfig
     """
-    config = dict(prod=ProdConfig, local=LocalConfig)
+    config = dict(prod=ProdConfig(), local=LocalConfig())
     return config[environ.get("API_ENV", "local")]
 
 
