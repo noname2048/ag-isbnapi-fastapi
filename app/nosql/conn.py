@@ -23,3 +23,6 @@ class MongoDB:
             raise Exception("use mongodb before init")
 
         return self._client
+
+
+mongodb = MongoDB()
