@@ -1,19 +1,22 @@
-from datetime import datetime, timedelta
-from dataclasses import asdict
-
 import uvicorn
 
-from fastapi import FastAPI, APIRouter
-from fastapi.security import APIKeyHeader
+from fastapi import FastAPI  # ,APIRouter
+
+# from fastapi.security import APIKeyHeader
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.common.config import get_config, settings
-from app.middlewares.token_validator import AccessControl
-from app.middlewares.trusted_host import TrustedHostMiddleware
-from app.database.conn import db
+from app.common.config import settings
+
+# from app.middlewares.token_validator import AccessControl
+# from app.middlewares.trusted_host import TrustedHostMiddleware
+from app.database.conn import postgresql_db
+from app.nosql.conn import mongodb
 from app.routes import index  # , books, auth, users
 
-API_KEY_HEADER = APIKeyHeader(name="Authorization", auto_error=False)
+# API_KEY_HEADER = APIKeyHeader(name="Authorization", auto_error=False)
+from fastapi.middleware.httpsredirect import HTTPSRedirectMiddleware
+from app.middlewares.token_validator import access_control
+from starlette.middleware.base import BaseHTTPMiddleware
 
 
 def create_app() -> FastAPI:
@@ -21,21 +24,25 @@ def create_app() -> FastAPI:
 
     :return: 설정된 FastAPI app
     """
-    # config
-    # app
     app = FastAPI()
-    # DB
-    # db.init_app(app, **conf_dict)
-    # redis
-    # middleware
+    postgresql_db.init_sqlalchemy(
+        app=app,
+        dsn=settings.postgresql_dsn,
+        echo=False,
+    )
+    mongodb.init_motor(
+        app=app,
+        dsn=settings.mongodb_dsn,
+    )
     # app.add_middleware(
     #     AccessControl,
     #     except_path_list=settings.AUTHORIZATION_EXCEPT_ENDPOINT_LIST,
     #     except_path_regex=settings.AUTHORIZATION_EXCEPT_ENDPOINT_REGEX,
     # )
+    app.add_middleware(middleware_class=BaseHTTPMiddleware, dispatch=access_control)
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=settings.ALLOWED_ORIGIN,
+        allow_origins=settings.allowed_origin,
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
@@ -65,4 +72,10 @@ def create_app() -> FastAPI:
 app = create_app()
 
 if __name__ == "__main__":
+    """
+    1. python -m app.main
+    2. uvicorn app.main:app --reload
+
+    1번 방식으로 진행할 때 작동하는 코드.
+    """
     uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)
