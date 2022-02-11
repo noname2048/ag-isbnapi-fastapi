@@ -17,6 +17,22 @@ from app.models import UserToken
 
 from app.utils.date_utils import Delta
 
+from datetime import datetime
+from fastapi import FastAPI, Request
+
+
+async def access_control(request: Request, call_next):
+    request.state.req_time = datetime.utcnow()
+    request.state.user = None
+    request.state.inspect = None
+    ip = request.headers.get("x-forwarded-for", request.client.host)
+    if "," in ip:
+        ip = ip.split(",")[0]
+    request.state.ip = ip
+
+    response = await call_next(request)
+    return response
+
 
 class AccessControl:
     def __init__(

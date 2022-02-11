@@ -7,7 +7,7 @@ router = APIRouter()
 
 
 @router.get("/")
-async def index():
+async def index(request: Request):
     """
     상태 체크용 API
 
@@ -19,6 +19,7 @@ async def index():
         f"ISBN API"
         f"\n(UTC: {current_time.strftime('%Y.%m.%d %H:%M:%S')})"
         f"\n(KST: {kst.strftime('%Y.%m.%d %H:%M:%S +0900')})"
+        f"\n{request.state.ip}"
     )
 
 
