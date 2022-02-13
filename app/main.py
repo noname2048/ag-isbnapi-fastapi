@@ -1,3 +1,4 @@
+from venv import create
 import uvicorn
 
 from fastapi import FastAPI  # ,APIRouter
@@ -11,12 +12,14 @@ from app.common.config import settings
 # from app.middlewares.trusted_host import TrustedHostMiddleware
 from app.database.conn import postgresql_db
 from app.nosql.conn import mongodb
-from app.routes import index  # , books, auth, users
+from app.routes import index, files  # , books, auth, users
 
 # API_KEY_HEADER = APIKeyHeader(name="Authorization", auto_error=False)
 from fastapi.middleware.httpsredirect import HTTPSRedirectMiddleware
 from app.middlewares.token_validator import access_control
 from starlette.middleware.base import BaseHTTPMiddleware
+
+app_name = "isbnapi"
 
 
 def create_app() -> FastAPI:
@@ -54,6 +57,7 @@ def create_app() -> FastAPI:
     # )
     # routes
     app.include_router(index.router)
+    app.include_router(files.router)
     # app.include_router(books.router, tags=["books", "api"], prefix="/api/v1/books")
     # app.include_router(
     #     auth.router,
@@ -69,6 +73,14 @@ def create_app() -> FastAPI:
     return app
 
 
+from app.utils.logger import dict_config
+import logging
+
+from logging.config import dictConfig
+
+dictConfig(dict_config)
+mylogger = logging.getLogger("isbnapi")
+
 app = create_app()
 
 if __name__ == "__main__":
@@ -78,4 +90,11 @@ if __name__ == "__main__":
 
     1번 방식으로 진행할 때 작동하는 코드.
     """
-    uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run(
+        "app.main:app",
+        host="0.0.0.0",
+        port=8000,
+        reload=True,
+        debug=True,
+        log_level="debug",
+    )
