@@ -6,8 +6,8 @@ authors = ["noname2048 <sungwook.csw@gmail.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.8"
-fastapi = "^0.65.1"
-uvicorn = {extras = ["standard"], version = "^0.15.0"}
+fastapi = "^0.73.0"
+uvicorn = "^0.17.4"
 requests = "^2.25.1"
 black = "^21.5b2"
 python-dotenv = "^0.17.1"
@@ -16,7 +16,6 @@ Pillow = "^8.2.0"
 python-multipart = "^0.0.5"
 SQLAlchemy = "^1.4.26"
 alembic = "^1.7.4"
-psycopg2 = "^2.9.1"
 Jinja2 = "^3.0.2"
 aiofiles = "^0.7.0"
 aiohttp = {extras = ["speedups"], version = "^3.8.1"}
@@ -26,13 +25,14 @@ bcrypt = "^3.2.0"
 beautifulsoup4 = "^4.10.0"
 odmantic = "^0.3.5"
 motor = "^2.3.0"
-pymongo = {version = "^3.12.0", extras = ["srv"]}
 cchardet = "^2.1.7"
 pytest = "^6.2.5"
 boto3 = "^1.20.24"
 APScheduler = "^3.8.1"
 asyncpg = "^0.25.0"
 pydantic = {version = "^1.8.0", extras = ["email"]}
+psycopg2-binary = "^2.9.3"
+pandas = "^1.4.1"
 
 [tool.poetry.dev-dependencies]
 jupyterlab = "^3.0.16"
