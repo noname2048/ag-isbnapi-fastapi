@@ -12,7 +12,8 @@ from app.common.config import settings
 # from app.middlewares.trusted_host import TrustedHostMiddleware
 from app.database.conn import postgresql_db
 from app.nosql.conn import mongodb
-from app.routes import index, files  # , books, auth, users
+from app.routes import index, files, health  # , books, auth, users
+
 
 # API_KEY_HEADER = APIKeyHeader(name="Authorization", auto_error=False)
 from fastapi.middleware.httpsredirect import HTTPSRedirectMiddleware
@@ -58,6 +59,7 @@ def create_app() -> FastAPI:
     # routes
     app.include_router(index.router)
     app.include_router(files.router)
+    app.include_router(health.router)
     # app.include_router(books.router, tags=["books", "api"], prefix="/api/v1/books")
     # app.include_router(
     #     auth.router,
