@@ -15,7 +15,7 @@ xmltodict = "^0.12.0"
 Pillow = "^8.2.0"
 python-multipart = "^0.0.5"
 SQLAlchemy = "^1.4.26"
-alembic = "^1.7.4"
+alembic = "^1.7.6"
 Jinja2 = "^3.0.2"
 aiofiles = "^0.7.0"
 aiohttp = {extras = ["speedups"], version = "^3.8.1"}
@@ -33,6 +33,7 @@ asyncpg = "^0.25.0"
 pydantic = {version = "^1.8.0", extras = ["email"]}
 psycopg2-binary = "^2.9.3"
 pandas = "^1.4.1"
+jupyterlab = "^3.2.9"
 
 [tool.poetry.dev-dependencies]
 jupyterlab = "^3.0.16"
