@@ -31,6 +31,7 @@ class Settings(BaseSettings):
     """
 
     base_dir: Path = base_dir
+    config_dir: Path = config_dir
     allowed_origin: list = [
         "http://localhost:3000",
         "http://localhost:8000",
@@ -47,6 +48,7 @@ class Settings(BaseSettings):
     mongodb_dsn: str = "mongodb+srv://user:password@localhost:27017/test"
     jwt_secret: str = "4321dcba"
     jwt_algorithm: str = "HS256"
+    aladin_ttbkey: str = "ttbchltjddnrwkd1525001"
 
     class Config:
         env_file = config_dir / ".env"
