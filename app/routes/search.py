@@ -1,16 +1,34 @@
+from optparse import Option
 from typing import Optional
 from fastapi import APIRouter, Query
+from app.nosql.conn import mongodb
 
-router = APIRouter(
-    responses={
-        200: {"description": "Ok"},
-        400: {"description": "Bad Request"},
-        404: {"description": "Not found"},
-    },
-)
+router = APIRouter()
 
 
-@router.get("/")
+@router.get("/search/title")
+async def simple_title_search(
+    q: str = Query(...),
+    offset: Optional[int] = Query(0),
+    limit: Optional[int] = Query(10),
+):
+    collection = mongodb.client["isbn"]["books"]
+    document = collection.find({"title": q}, limit=limit)
+    return document
+
+
+@router.get("/search/isbn")
+async def simple_isbn_search(
+    q: str = Query(...),
+    offset: Optional[int] = Query(0),
+    limit: Optional[int] = Query(10),
+):
+    collection = mongodb.client["isbn"]["books"]
+    document = collection.find({"isbn": q}, limit=limit)
+    return document
+
+
+@router.get("/depreciate")
 async def search(
     isbn: Optional[str] = Query(
         None,
