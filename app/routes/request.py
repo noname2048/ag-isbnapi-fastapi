@@ -16,15 +16,19 @@ from app.task.aladin_api import do_request_task
 
 engine = AIOEngine(motor_client=mongo_db.client, database="isbn")
 
+from app.nosql.conn import mongodb
 
-router = APIRouter(
-    responses={
-        200: {"description": "Ok"},
-        201: {"description": "creation"},
-        400: {"description": "Bad Request"},
-        404: {"description": "Not found"},
-    },
-)
+router = APIRouter()
+
+
+@router.get("/request")
+async def simple_isbn_request(isbn: Query(...)):
+    collection = mongodb.client["isbn"]["books"]
+    document = await collection.find_one({"isbn": isbn})
+    if document:
+        raise Exception("request target already exists")
+
+    return {"isbn": isbn}
 
 
 class ResponseBookInfo(BaseModel):
