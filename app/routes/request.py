@@ -23,6 +23,19 @@ router = APIRouter()
 
 @router.get("/request")
 async def simple_isbn_request(isbn: Query(...)):
+    collection = mongodb.client["isbn"]["requests"]
+    request = await collection.find_one({"isbn": isbn})
+
+    new_insert = {
+        "isbn": isbn,
+        "status": "request accepted",
+        "request_date": datetime.datetime.utcnow(),
+    }
+
+    new_insert = collection.insert_one(new_insert)
+    new_insert["_id"] = new_insert["_id"].toString()
+    return new_insert
+
     collection = mongodb.client["isbn"]["books"]
     document = await collection.find_one({"isbn": isbn})
     if document:
