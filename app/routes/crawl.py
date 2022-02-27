@@ -1,3 +1,4 @@
+from readline import insert_text
 from fastapi import APIRouter, Query
 from app.nosql.conn import mongodb
 import datetime
@@ -5,8 +6,8 @@ import datetime
 router = APIRouter()
 
 
-@router.get("/crawl/")
-async def smple_crwal_request(isbn: Query(...)):
+@router.get("/crawl")
+async def smple_crwal_request(isbn: str = Query(...)):
     collection = mongodb.client["isbn"]["requests"]
     request = await collection.find_one({"isbn": isbn})
 
@@ -19,6 +20,6 @@ async def smple_crwal_request(isbn: Query(...)):
         "request_date": datetime.datetime.utcnow(),
         "updated_date": datetime.datetime.utcnow(),
     }
-    result = await collection.insert_one(request)
-    result["_id"] = result["_id"].toString()
+    inserted = await collection.insert_one(request)
+    result = await collection.find_one(inserted.inserted_id)
     return result
