@@ -20,6 +20,8 @@ async def smple_crwal_request(isbn: str = Query(...)):
         "request_date": datetime.datetime.utcnow(),
         "updated_date": datetime.datetime.utcnow(),
     }
+
     inserted = await collection.insert_one(request)
     result = await collection.find_one(inserted.inserted_id)
+    result["_id"] = str(result["_id"])
     return result

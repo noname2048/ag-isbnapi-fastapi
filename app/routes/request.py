@@ -22,26 +22,24 @@ router = APIRouter()
 
 
 @router.get("/request")
-async def simple_isbn_request(isbn: Query(...)):
+async def simple_isbn_request(isbn: str = Query(...)):
     collection = mongodb.client["isbn"]["requests"]
     request = await collection.find_one({"isbn": isbn})
+
+    if request:
+        return {"msg": "already created"}
 
     new_insert = {
         "isbn": isbn,
         "status": "request accepted",
         "request_date": datetime.datetime.utcnow(),
+        "updated_date": datetime.datetime.utcnow(),
     }
 
-    new_insert = collection.insert_one(new_insert)
-    new_insert["_id"] = new_insert["_id"].toString()
-    return new_insert
-
-    collection = mongodb.client["isbn"]["books"]
-    document = await collection.find_one({"isbn": isbn})
-    if document:
-        raise Exception("request target already exists")
-
-    return {"isbn": isbn}
+    new_insert = await collection.insert_one(new_insert)
+    result = await collection.find_one({"_id": new_insert.inserted_id})
+    result["_id"] = str(result["_id"])
+    return result
 
 
 class ResponseBookInfo(BaseModel):
