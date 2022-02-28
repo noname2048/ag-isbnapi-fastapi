@@ -22,7 +22,10 @@ router = APIRouter()
 
 
 @router.get("/request")
-async def simple_isbn_request(isbn: str = Query(...)):
+async def simple_isbn_request(
+    bg_tasks: BackgroundTasks,
+    isbn: str = Query(..., title="isbn", regex=r"^[0-9]{13,13}$"),
+):
     collection = mongodb.client["isbn"]["requests"]
     request = await collection.find_one({"isbn": isbn})
 
@@ -39,6 +42,7 @@ async def simple_isbn_request(isbn: str = Query(...)):
     new_insert = await collection.insert_one(new_insert)
     result = await collection.find_one({"_id": new_insert.inserted_id})
     result["_id"] = str(result["_id"])
+    # bg_tasks.add_task()
     return result
 
 

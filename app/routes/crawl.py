@@ -1,5 +1,5 @@
 from readline import insert_text
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Query, BackgroundTasks
 from app.nosql.conn import mongodb
 import datetime
 
@@ -7,7 +7,10 @@ router = APIRouter()
 
 
 @router.get("/crawl")
-async def smple_crwal_request(isbn: str = Query(...)):
+async def smple_crwal_request(
+    bg_tasks: BackgroundTasks,
+    isbn: str = Query(..., title="isbn", regex=r"^[0-9]{13}$"),
+):
     collection = mongodb.client["isbn"]["requests"]
     request = await collection.find_one({"isbn": isbn})
 
