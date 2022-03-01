@@ -4,6 +4,19 @@ import requests
 import json
 from enum import Enum
 import datetime
+from app.task.image_upload import upload
+import asyncio
+
+
+class SessionManager:
+    def __init__(self):
+        self.session = None
+
+    async def make_session(self):
+        if self.session:
+            return
+        # self.session = await
+        pass
 
 
 class crawlErrorType(Enum, str):
