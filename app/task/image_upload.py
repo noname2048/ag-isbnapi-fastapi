@@ -2,7 +2,7 @@ from pydantic import HttpUrl
 import aiohttp
 import boto3
 from app.settings import config
-from app.utils.singleton_session import session
+from app.utils.singleton_session import aiohttp_context
 import requests
 import re
 from botocore.exceptions import ClientError
