@@ -19,7 +19,7 @@ class SessionManager:
         pass
 
 
-class crawlErrorType(Enum, str):
+class crawlErrorType(str, Enum):
     requested: str = "requested"
     json_error: str = "json_error"
 
