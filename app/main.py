@@ -14,6 +14,7 @@ from app.database.conn import postgresql_db
 from app.nosql.conn import mongodb
 from app.routes import index, files, health, crawl, request  # , books, auth, users
 
+from app.utils.singleton_session import aiohttp_context
 
 # API_KEY_HEADER = APIKeyHeader(name="Authorization", auto_error=False)
 from fastapi.middleware.httpsredirect import HTTPSRedirectMiddleware
@@ -38,6 +39,7 @@ def create_app() -> FastAPI:
         app=app,
         dsn=settings.mongodb_dsn,
     )
+    aiohttp_context.init_aiohttp(app=app)
     # app.add_middleware(
     #     AccessControl,
     #     except_path_list=settings.AUTHORIZATION_EXCEPT_ENDPOINT_LIST,
