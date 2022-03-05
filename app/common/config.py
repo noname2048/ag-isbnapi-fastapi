@@ -46,9 +46,10 @@ class Settings(BaseSettings):
     postgresql_dsn: str = "postgresql+psycopy2://user:password@localhost:5432/test"
     postgresql_echo: bool = True
     mongodb_dsn: str = "mongodb+srv://user:password@localhost:27017/test"
+    mongodb_name: str = "mongodb"
     jwt_secret: str = "4321dcba"
     jwt_algorithm: str = "HS256"
-    aladin_ttbkey: str = "ttbchltjddnrwkd1525001"
+    aladin_ttbkey: str = "__example__"
 
     class Config:
         env_file = config_dir / ".env"

@@ -1,13 +1,15 @@
 from fastapi import APIRouter
-from app.nosql.conn import mongodb
+from app.odmantic.connect import singleton_mongodb
+from app.odmantic.models import Request
 
 router = APIRouter()
 
 
 @router.get("/requests")
 async def requests():
-    requests_coll = mongodb.client["isbn"]["requests"]
-    cursor = requests_coll.find({})
-    cursor.limit(20)
-    target = cursor.to_list(length=20)
-    return target
+    """"""
+    engine = singleton_mongodb.engine()
+    requests = await engine.find(Request, {}, limit=100)
+    if requests:
+        return requests
+    return []
