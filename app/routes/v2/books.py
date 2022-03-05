@@ -5,7 +5,7 @@ from app.nosql.conn import mongodb
 router = APIRouter()
 
 
-@router.get("")
+@router.get("/books")
 async def books(limit: Optional[int] = Query(10, le=100)):
     """사용된다고 가정하지 않는 기본 / 루트
 
