@@ -9,7 +9,7 @@ router = APIRouter()
 @router.get("/requests")
 async def list_requests():
     """"""
-    engine = singleton_mongodb.engine()
+    engine = singleton_mongodb.engine
     requests = await engine.find(Request, {}, limit=100)
     if requests:
         return requests
@@ -21,7 +21,7 @@ async def make_request(
     isbn: str = Body(..., regex=r"^\d{13}$"), update: bool = Body(False)
 ):
     """"""
-    engine = singleton_mongodb.engine()
+    engine = singleton_mongodb.engine
     request = await engine.find(Request, {"isbn": isbn})
     if request and update:
         request.status = "need update"
