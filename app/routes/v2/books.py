@@ -17,7 +17,7 @@ async def books(limit: Optional[int] = Query(10, le=100)):
     return []
 
 
-@router.get("/books/titlesearch")
+@router.get("/books/search/title")
 async def search_by_title(q: str = Query(...)):
     engine = singleton_mongodb.engine
     books = await engine.find(Book, Book.title.match(q))
@@ -26,7 +26,7 @@ async def search_by_title(q: str = Query(...)):
     return []
 
 
-@router.get("/books/isbnsearch")
+@router.get("/books/search/isbn")
 async def search_by_isbn(q: str = Query(..., regex=r"^\d{13}$")):
     engine = singleton_mongodb.engine
     books = await engine.find(Book, Book.isbn13.match(q))
