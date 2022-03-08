@@ -1,4 +1,4 @@
-from typing import IO, List
+from typing import IO, List, Optional
 from datetime import datetime
 import shutil
 from tempfile import NamedTemporaryFile
@@ -7,6 +7,8 @@ import csv
 from starlette import status
 
 from fastapi import APIRouter, Body, File, UploadFile, Header, Depends, HTTPException
+
+from pydantic import BaseModel, Field
 
 from app.odmantic.connect import singleton_mongodb
 from app.odmantic.models import Request
@@ -45,8 +47,32 @@ async def make_request(
     return request
 
 
+class SingleRequestForm(BaseModel):
+    isbn: str = Field(..., regex=r"^\d{13}$")
+    update: Optional[bool] = False
+
+
 @router.post("/requests/list")
-async def bulk_request(isbns: List[int] = Body(...)):
+async def bulk_request(requests_form: List[SingleRequestForm] = Body(...)):
+    engine = singleton_mongodb.engine
+
+    requests = []
+    for request_form in requests_form:
+        request = await engine.find(Request, {"isbn": request_form.isbn})
+        if request and request_form.update:
+            request.status = "need update"
+            await engine.save(request)
+            continue
+
+        if request:
+            continue
+
+        now = datetime.utcnow()
+        new_request = Request(
+            isbn=request_form.isbn, created_at=now, updated_at=now, status="requested"
+        )
+        request = await engine.save(Request)
+        requests += [request]
     pass
 
 
