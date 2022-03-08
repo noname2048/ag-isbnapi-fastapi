@@ -57,6 +57,9 @@ async def bulk_request(requests_form: List[SingleRequestForm] = Body(...)):
     engine = singleton_mongodb.engine
 
     requests = []
+    if not requests_form:
+        return requests
+
     for request_form in requests_form:
         request = await engine.find(Request, {"isbn": request_form.isbn})
         if request and request_form.update:
@@ -73,7 +76,8 @@ async def bulk_request(requests_form: List[SingleRequestForm] = Body(...)):
         )
         request = await engine.save(Request)
         requests += [request]
-    pass
+
+    return requests
 
 
 @router.post("requests/csv")
