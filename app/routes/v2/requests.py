@@ -3,6 +3,7 @@ from datetime import datetime
 import shutil
 from tempfile import NamedTemporaryFile
 import csv
+import re
 
 from starlette import status
 
@@ -52,7 +53,26 @@ class SingleRequestForm(BaseModel):
     update: Optional[bool] = False
 
 
-@router.post("/requests/list")
+isbn_pattern = re.compile(r"^\d{13}$")
+
+@router.post("/requests/multi")
+async def bulk_request_with_q(qs: List[str]):
+    engine = singleton_mongodb.engine
+
+    requests = []
+    for q in qs:
+        if isbn_pattern.match(q):
+            request = await engine.find(Request, {"isbn": q})
+            if not request:
+                current_time = datetime.utcnow()
+                new_request = Request(isbn=q, created_at=current_time, updated_at=current_time, status="requested")
+                request = await engine.save(new_request)
+                requests += [request]
+    
+    return {"accepted": len(requests), "requests": requests}
+        
+        
+@router.post("/requests/json")
 async def bulk_request(requests_form: List[SingleRequestForm] = Body(...)):
     engine = singleton_mongodb.engine
 
@@ -77,7 +97,7 @@ async def bulk_request(requests_form: List[SingleRequestForm] = Body(...)):
         request = await engine.save(Request)
         requests += [request]
 
-    return requests
+    return {"result": len(requests), "requests": requests}
 
 
 @router.post("requests/csv")
@@ -100,8 +120,9 @@ async def csv_request(
         temp.write(chunk)
     temp.close()
 
+    isbn_pattern = "r^"
     with open(temp.name) as csvfile:
         csv_reader = csv.reader(csvfile)
         for row in csv_reader:
-            pass
+            
     # shutil.move(temp.name, )
