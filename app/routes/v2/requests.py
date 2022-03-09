@@ -4,6 +4,7 @@ import shutil
 from tempfile import NamedTemporaryFile
 import csv
 import re
+from numpy import kaiser
 
 from starlette import status
 
@@ -55,6 +56,7 @@ class SingleRequestForm(BaseModel):
 
 isbn_pattern = re.compile(r"^\d{13}$")
 
+
 @router.post("/requests/multi")
 async def bulk_request_with_q(qs: List[str]):
     engine = singleton_mongodb.engine
@@ -65,13 +67,18 @@ async def bulk_request_with_q(qs: List[str]):
             request = await engine.find(Request, {"isbn": q})
             if not request:
                 current_time = datetime.utcnow()
-                new_request = Request(isbn=q, created_at=current_time, updated_at=current_time, status="requested")
+                new_request = Request(
+                    isbn=q,
+                    created_at=current_time,
+                    updated_at=current_time,
+                    status="requested",
+                )
                 request = await engine.save(new_request)
                 requests += [request]
-    
+
     return {"accepted": len(requests), "requests": requests}
-        
-        
+
+
 @router.post("/requests/json")
 async def bulk_request(requests_form: List[SingleRequestForm] = Body(...)):
     engine = singleton_mongodb.engine
@@ -120,9 +127,26 @@ async def csv_request(
         temp.write(chunk)
     temp.close()
 
-    isbn_pattern = "r^"
+    engine = singleton_mongodb.engine
+
+    requests = []
     with open(temp.name) as csvfile:
         csv_reader = csv.reader(csvfile)
         for row in csv_reader:
-            
+            for col in row:
+                if isbn_pattern.match(col):
+                    request = await engine.find_one({"isbn": col})
+                    if not request:
+                        current_time = datetime.utcnow()
+                        new_request = Request(
+                            isbn=col,
+                            created_at=current_time,
+                            updated_at=current_time,
+                            status="requested",
+                        )
+                        request = await engine.save(new_request)
+                        requests += [request]
+    
+    return {"accepted": len(requests), "requests": requests}
+
     # shutil.move(temp.name, )
