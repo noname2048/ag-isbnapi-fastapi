@@ -21,6 +21,8 @@ from fastapi.middleware.httpsredirect import HTTPSRedirectMiddleware
 from app.middlewares.token_validator import access_control
 from starlette.middleware.base import BaseHTTPMiddleware
 
+from app.odmantic.connect import singleton_mongodb
+
 app_name = "isbnapi"
 
 
@@ -35,6 +37,7 @@ def create_app() -> FastAPI:
         dsn=settings.postgresql_dsn,
         echo=False,
     )
+    singleton_mongodb.attach_event(app)
     mongodb.init_motor(
         app=app,
         dsn=settings.mongodb_dsn,
