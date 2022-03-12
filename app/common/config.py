@@ -49,7 +49,13 @@ class Settings(BaseSettings):
     mongodb_name: str = "mongodb"
     jwt_secret: str = "4321dcba"
     jwt_algorithm: str = "HS256"
-    aladin_ttbkey: str = "__example__"
+    aladin_ttbkey: str = "_secret_"
+    boto3_aws_access_id: str = "_secret_"
+    boto3_aws_access_key: str = "_secret_"
+
+    def verify(self):
+        # self attrs 살펴서 _secret_ 인 것이 있으면 raise
+        pass
 
     class Config:
         env_file = config_dir / ".env"
