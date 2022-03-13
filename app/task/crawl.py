@@ -8,7 +8,7 @@ from boto3 import resource
 from app.odmantic.connect import singleton_mongodb
 from app.odmantic.models import Request, Book
 from app.common.config import settings
-
+from app.exceptions import crawl_error, crwal_error
 
 aladin_api_url = ""
 ttbkey = ""
@@ -16,15 +16,16 @@ isbn13_pattern = re.compile(r"^\d{13}$")
 
 
 async def f1(mongo_object_id: str):
+
     # parameter를 바탕으로 request 불러오기
     engine = singleton_mongodb.engine
     request = await engine.find_one(Request, Request.id == mongo_object_id)
     if not request:
-        raise Exception()
+        raise crawl_error.MongoObjectNotFound()
 
     isbn13 = request.isbn
     if not isbn13_pattern.match(isbn13):
-        raise Exception()
+        raise crwal_error.IsbnPatternError()
 
     # 알라딘에 isbn13으로 요청
     response = requests.post(
@@ -38,7 +39,7 @@ async def f1(mongo_object_id: str):
         },
     )
     if response.status_code != 200:
-        raise Exception("알라딘에서 200이 아닌 응답을 수신")
+        raise crawl_error.AladinResponseError("알라딘에서 200이 아닌 응답을 수신")
 
     # 반환받은 text를 json으로 변경
     try:
@@ -48,12 +49,12 @@ async def f1(mongo_object_id: str):
     except json.decoder.JSONDecodeError:
         request.status = "json error"
         await engine.save(request)
-        raise Exception("")
+        raise crawl_error.AladinResponseError()
 
     if not item:
         request.status = "item not found"
         await engine.save(request)
-        raise Exception()
+        raise crawl_error.AladinItemNotFound()
 
     # 변환된 json에서 필요한 book 데이터 추출
     img_url = item[0]["cover"]
