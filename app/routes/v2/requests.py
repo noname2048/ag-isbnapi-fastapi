@@ -14,6 +14,7 @@ from pydantic import BaseModel, Field
 
 from app.odmantic.connect import singleton_mongodb
 from app.odmantic.models import Request
+from app.exceptions import request_error
 
 router = APIRouter()
 
@@ -41,7 +42,7 @@ async def make_request(
         return request
 
     if request:
-        raise Exception("already requested")
+        raise request_error.RequestExsist()
 
     now = datetime.utcnow()
     new_request = Request(isbn=isbn, created_at=now, updated_at=now, status="requested")
@@ -121,9 +122,8 @@ async def csv_request(
     for chunk in file.file:
         real_file_size += len(chunk)
         if real_file_size > file_size_limit:
-            raise HTTPException(
-                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, detail="Too large"
-            )
+            raise request_error.RequeustFileTooBig()
+
         temp.write(chunk)
     temp.close()
 
@@ -146,7 +146,7 @@ async def csv_request(
                         )
                         request = await engine.save(new_request)
                         requests += [request]
-    
+
     return {"accepted": len(requests), "requests": requests}
 
     # shutil.move(temp.name, )
