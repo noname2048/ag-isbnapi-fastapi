@@ -22,6 +22,7 @@ from app.middlewares.token_validator import access_control
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.odmantic.connect import singleton_mongodb
+from app.routes.v2 import v2_router
 
 app_name = "isbnapi"
 
@@ -62,11 +63,12 @@ def create_app() -> FastAPI:
     #     except_path=settings.AUTHORIZATION_EXCEPT_ENDPOINT_LIST,
     # )
     # routes
-    app.include_router(index.router)
-    app.include_router(files.router)
-    app.include_router(health.router)
-    app.include_router(crawl.router)
-    app.include_router(request.router)
+    app.include_router(v2_router)
+    # app.include_router(index.router)
+    # app.include_router(files.router)
+    # app.include_router(health.router)
+    # app.include_router(crawl.router)
+    # app.include_router(request.router)
     # app.include_router(books.router, tags=["books", "api"], prefix="/api/v1/books")
     # app.include_router(
     #     auth.router,
