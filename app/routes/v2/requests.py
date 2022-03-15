@@ -4,12 +4,9 @@ import shutil
 from tempfile import NamedTemporaryFile
 import csv
 import re
-from numpy import kaiser
 
 from starlette import status
-
 from fastapi import APIRouter, Body, File, UploadFile, Header, Depends, HTTPException
-
 from pydantic import BaseModel, Field
 
 from app.odmantic.connect import singleton_mongodb
