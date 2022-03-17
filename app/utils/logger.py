@@ -4,6 +4,8 @@ from fastapi.logger import logger
 from fastapi import Request
 from inspect import currentframe as frame
 from pydantic import BaseModel
+import logging
+from logging.config import dictConfig
 
 UVICORN_LOGGING_CONFIG = {
     "version": 1,
@@ -20,8 +22,8 @@ UVICORN_LOGGING_CONFIG = {
 
 class LogConfig(BaseModel):
     LOGGER_NAME = "isbnapi"
-    # LOG_FORMAT = "%(levelprefix)s | %(asctime)s | %(message)s"
-    LOG_FORMAT = "%(levelprefix)s %(client_addr)s  | %(asctime)s | %(message)s"
+    LOG_FORMAT = "%(levelprefix)s | %(asctime)s | %(message)s"
+    # LOG_FORMAT = "%(levelprefix)s %(client_addr)s  | %(asctime)s | %(message)s"
     LOG_LEVEL = "DEBUG"
 
     version = 1
@@ -46,6 +48,8 @@ class LogConfig(BaseModel):
 
 
 dict_config = LogConfig().dict()
+dictConfig(dict_config)
+mylogger = logging.getLogger("isbnapi")
 
 
 async def api_error_logger(request: Request, response=None, error=None):
