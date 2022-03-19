@@ -1,3 +1,4 @@
+from typing import Optional
 from fastapi import APIRouter, Body
 
 # import logging
@@ -19,7 +20,7 @@ class Request(BaseModel):
 
 
 @router.post("/test/echo")
-async def echo_text(isbn: Request):
+async def echo_text(isbn: Optional[Request]):
     mylogger.info(f"+{isbn}+")
     isbn: str = isbn.strip('"')
     mylogger.info(f"+{isbn}+")
