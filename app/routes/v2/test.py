@@ -20,8 +20,6 @@ class Request(BaseModel):
 
 
 @router.post("/test/echo")
-async def echo_text(isbn: Optional[Request]):
-    mylogger.info(f"+{isbn}+")
-    isbn: str = isbn.strip('"')
+async def echo_text(isbn: Request):
     mylogger.info(f"+{isbn}+")
     return {"isbn": isbn}
