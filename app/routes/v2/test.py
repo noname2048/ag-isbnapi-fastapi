@@ -17,6 +17,7 @@ async def echo_test(isbn: str = Body("")):
 
 class Request(BaseModel):
     isbn: str
+    update: Optional[str]
 
 
 @router.post("/test/echo")

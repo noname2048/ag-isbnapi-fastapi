@@ -6,21 +6,31 @@ import csv
 import re
 
 from starlette import status
-from fastapi import APIRouter, Body, File, UploadFile, Header, Depends, HTTPException
+from fastapi import (
+    APIRouter,
+    Body,
+    File,
+    UploadFile,
+    Header,
+    Depends,
+    HTTPException,
+    Query,
+)
 from pydantic import BaseModel, Field
 
 from app.odmantic.connect import singleton_mongodb
 from app.odmantic.models import Request
 from app.exceptions import request_error
+from app.utils.logger import mylogger
 
 router = APIRouter()
 
 
 @router.get("/requests")
-async def list_requests():
-    """"""
+async def list_requests(limit: int = Query(10, ge=5, le=100)):
+    """최근 리퀘스트를 보여줍니다. 5~100개까지 보여줍니다."""
     engine = singleton_mongodb.engine
-    requests = await engine.find(Request, {}, limit=100)
+    requests = await engine.find(Request, {}, limit=limit)
     if requests:
         return requests
     return []
@@ -30,7 +40,11 @@ async def list_requests():
 async def make_request(
     isbn: str = Body(..., regex=r"^\d{13}$"), update: bool = Body(False)
 ):
-    """"""
+    """리퀘스트를 신청 받습니다.
+    1. db에 있는지 확인하기
+    2. 있으면 업데이트 플래그 확인하기
+    3. 없으면 새로 만들기
+    """
     engine = singleton_mongodb.engine
     request = await engine.find(Request, {"isbn": isbn})
     if request and update:
@@ -41,9 +55,15 @@ async def make_request(
     if request:
         raise request_error.RequestExsist()
 
+    mylogger.warn(f"log -- make request {isbn}")
     now = datetime.utcnow()
-    new_request = Request(isbn=isbn, created_at=now, updated_at=now, status="requested")
-    request = await engine.save(Request)
+    new_request = Request(
+        isbn=isbn,
+        created_at=now,
+        updated_at=now,
+        status="requested",
+    )
+    request = await engine.save(new_request)
     return request
 
 
@@ -55,26 +75,40 @@ class SingleRequestForm(BaseModel):
 isbn_pattern = re.compile(r"^\d{13}$")
 
 
-@router.post("/requests/multi")
-async def bulk_request_with_q(qs: List[str]):
+@router.post("/requests/many")
+async def bulk_request_with_q(qs: List[SingleRequestForm]):
+    """json 형태로 여러개의 리퀘스트를 신청받습니다."""
     engine = singleton_mongodb.engine
 
     requests = []
+    accepted = 0
     for q in qs:
-        if isbn_pattern.match(q):
-            request = await engine.find(Request, {"isbn": q})
-            if not request:
-                current_time = datetime.utcnow()
-                new_request = Request(
-                    isbn=q,
-                    created_at=current_time,
-                    updated_at=current_time,
-                    status="requested",
-                )
-                request = await engine.save(new_request)
-                requests += [request]
+        if not isbn_pattern.match(q):
+            requests.append({"isbn": q.isbn, "error": "not isbn format"})
+            continue
 
-    return {"accepted": len(requests), "requests": requests}
+        request = await engine.find(Request, {"isbn": q})
+        if not request:
+            current_time = datetime.utcnow()
+            new_request = Request(
+                isbn=q,
+                created_at=current_time,
+                updated_at=current_time,
+                status="requested",
+            )
+            verified_request = await engine.save(new_request)
+            requests.append(verified_request)
+            accepted += 1
+            continue
+
+        if request and q.update:
+            request.status = "need updated"
+            await engine.save(request)
+            requests.append(request)
+            accepted += 1
+            continue
+
+    return {"accepted": accepted, "requests": requests}
 
 
 @router.post("/requests/json")
