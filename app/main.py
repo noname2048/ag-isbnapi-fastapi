@@ -1,4 +1,5 @@
 from venv import create
+from numpy import disp
 import uvicorn
 
 from fastapi import FastAPI  # ,APIRouter
@@ -23,6 +24,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.odmantic.connect import singleton_mongodb
 from app.routes.v2 import v2_router
+from app.middlewares.api_error_handler import api_erroer_handler
 
 app_name = "isbnapi"
 
@@ -57,6 +59,7 @@ def create_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+    app.add_middleware(middleware_class=BaseHTTPMiddleware, dispatch=api_erroer_handler)
     # app.add_middleware(
     #     TrustedHostMiddleware,
     #     allowed_hosts=["*"],
