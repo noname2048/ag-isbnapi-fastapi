@@ -12,6 +12,6 @@ async def api_erroer_handler(request: Request, call_next):
         api_exception.detail
         api_exception.msg
         api_error = {"detail": api_exception.detail, "msg": api_exception.msg}
-        return Response({"error": api_error})
+        return Response({"error": api_error}, status_code=api_exception.status_code)
 
     return response
