@@ -24,7 +24,11 @@ from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.odmantic.connect import singleton_mongodb
 from app.routes.v2 import v2_router
-from app.middlewares.api_error_handler import api_erroer_handler
+from app.middlewares.api_error_handler import (
+    api_erroer_handler,
+    api_logger_A,
+    api_logger_b,
+)
 
 app_name = "isbnapi"
 
@@ -46,11 +50,15 @@ def create_app() -> FastAPI:
         dsn=settings.mongodb_dsn,
     )
     aiohttp_context.init_aiohttp(app=app)
+    """미들웨어의 경우, 가장 먼저 add 하는 미들웨어가 view 함수와 근접한다.
+    즉 나중에 붙이는 미들웨어가 제일 먼저 반응하므로, CORS를 최 하단에 위치하게 하자.
+    """
     # app.add_middleware(
     #     AccessControl,
     #     except_path_list=settings.AUTHORIZATION_EXCEPT_ENDPOINT_LIST,
     #     except_path_regex=settings.AUTHORIZATION_EXCEPT_ENDPOINT_REGEX,
     # )
+    app.add_middleware(middleware_class=BaseHTTPMiddleware, dispatch=api_erroer_handler)
     app.add_middleware(middleware_class=BaseHTTPMiddleware, dispatch=access_control)
     app.add_middleware(
         CORSMiddleware,
@@ -59,7 +67,7 @@ def create_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
-    app.add_middleware(middleware_class=BaseHTTPMiddleware, dispatch=api_erroer_handler)
+
     # app.add_middleware(
     #     TrustedHostMiddleware,
     #     allowed_hosts=["*"],
