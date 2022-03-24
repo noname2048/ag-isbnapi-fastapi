@@ -1,12 +1,13 @@
 from starlette import status
-from app.exceptions import APIException
+from app.exceptions import APIException, APIExceptionV2
 
 
-class RequestExsist(APIException):
-    def __init__(self, ex: Exception = None):
+class RequestExsist(APIExceptionV2):
+    def __init__(self):
         super().__init__(
             status_code=status.HTTP_400_BAD_REQUEST,
-            msg="이미 해당하는 리퀘스트가 존재합니다. 업데이트를 하려면 플래그를 달아주세요",
+            msg="request exist",
+            description="이미 해당하는 리퀘스트가 존재합니다. 업데이트를 하려면 플래그를 달아주세요",
         )
 
 
