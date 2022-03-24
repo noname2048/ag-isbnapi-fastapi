@@ -22,7 +22,8 @@ UVICORN_LOGGING_CONFIG = {
 
 class LogConfig(BaseModel):
     LOGGER_NAME = "isbnapi"
-    LOG_FORMAT = "%(levelprefix)s | %(asctime)s | %(message)s"
+    LOG_FORMAT = "%(levelprefix)s |%(asctime)s| %(message)s"
+    """현재 로거에서 client addrs 를 적용하면 에러가 발생함."""
     # LOG_FORMAT = "%(levelprefix)s %(client_addr)s  | %(asctime)s | %(message)s"
     LOG_LEVEL = "DEBUG"
 
