@@ -46,9 +46,11 @@ async def make_request(
     3. 없으면 새로 만들기
     """
     engine = singleton_mongodb.engine
-    request = await engine.find(Request, {"isbn": isbn})
+    request = await engine.find_one(Request, {"isbn": isbn})
+    now = datetime.utcnow()
     if request and update:
         request.status = "need update"
+        request.updated_at = now
         await engine.save(request)
         return request
 
@@ -56,7 +58,6 @@ async def make_request(
         raise request_error.RequestExsist()
 
     mylogger.warn(f"log -- make request {isbn}")
-    now = datetime.utcnow()
     new_request = Request(
         isbn=isbn,
         created_at=now,
