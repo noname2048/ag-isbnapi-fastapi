@@ -5,6 +5,7 @@ from app.routes.v2 import (
     books,
     requests,
     test,
+    responses,
 )
 
 v2_router = APIRouter()
@@ -13,3 +14,4 @@ v2_router.include_router(books.router)
 v2_router.include_router(requests.router)
 
 v2_router.include_router(test.router)
+v2_router.include_router(responses.router)

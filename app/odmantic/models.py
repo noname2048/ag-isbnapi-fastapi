@@ -5,8 +5,8 @@ from datetime import datetime
 
 class Request(Model):
     isbn: str
-    created_date: datetime
-    updated_date: datetime
+    created_at: datetime
+    updated_at: datetime
     status: str
 
     class Config:

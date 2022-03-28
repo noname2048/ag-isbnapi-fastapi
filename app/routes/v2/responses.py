@@ -20,4 +20,6 @@ async def check_request_manually():
     if not request:
         return {"msg": "모두 업데이트 되었습니다."}
     book = await f1(request.id)
-    return book
+    request.status = "registered"
+    request = await engine.save(request)
+    return {"book": book, "request": request}

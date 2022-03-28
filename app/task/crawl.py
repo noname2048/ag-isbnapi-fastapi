@@ -1,14 +1,14 @@
 import requests
 import re
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from boto3 import resource
 
 from app.odmantic.connect import singleton_mongodb
 from app.odmantic.models import Request, Book
 from app.common.config import settings
-from app.exceptions import crawl_error, crwal_error
+from app.exceptions import crawl_error
 
 aladin_api_url = "http://www.aladin.co.kr/ttb/api/ItemLookUp.aspx"
 ttbkey = settings.aladin_ttbkey
@@ -25,7 +25,7 @@ async def f1(mongo_object_id: str):
 
     isbn13 = request.isbn
     if not isbn13_pattern.match(isbn13):
-        raise crwal_error.IsbnPatternError()
+        raise crawl_error.IsbnPatternError()
 
     # 알라딘에 isbn13으로 요청
     response = requests.post(
@@ -64,9 +64,11 @@ async def f1(mongo_object_id: str):
         isbn13=item[0]["isbn13"],
         publisher=item[0]["publisher"],
         price=item[0]["priceStandard"],
-        pub_date=datetime.datetime.strptime(item[0]["pubDate"], "%Y-%m-%d"),
+        pub_date=datetime.strptime(item[0]["pubDate"], "%Y-%m-%d"),
         author=item[0]["author"],
         cover=f"{isbn13}.jpg",
+        created_at=datetime.utcnow() + timedelta(hours=9),
+        updated_at=datetime.utcnow() + timedelta(hours=9),
     )
 
     # cover 이미지가 aws에 있는지 확인
@@ -86,3 +88,4 @@ async def f1(mongo_object_id: str):
             obj.upload_fileobj(img_res.raw)
 
     saved_book = await engine.save(new_book)
+    return saved_book
