@@ -10,8 +10,8 @@ from app.odmantic.models import Request, Book
 from app.common.config import settings
 from app.exceptions import crawl_error, crwal_error
 
-aladin_api_url = ""
-ttbkey = ""
+aladin_api_url = "http://www.aladin.co.kr/ttb/api/ItemLookUp.aspx"
+ttbkey = settings.aladin_ttbkey
 isbn13_pattern = re.compile(r"^\d{13}$")
 
 
