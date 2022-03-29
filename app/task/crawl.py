@@ -1,3 +1,4 @@
+from typing import List
 import requests
 import re
 import json
@@ -89,3 +90,11 @@ async def f1(mongo_object_id: str):
 
     saved_book = await engine.save(new_book)
     return saved_book
+
+
+async def f2(id_list: List):
+    books = []
+    for id in list:
+        book = await f1(id)
+        books.append(book)
+    return books
