@@ -59,6 +59,7 @@ async def f1(mongo_object_id: str):
 
     # 변환된 json에서 필요한 book 데이터 추출
     img_url = item[0]["cover"]
+    now = datetime.utcnow + timedelta(hours=9)
     new_book = Book(
         title=item[0]["title"],
         description=item[0]["description"],
@@ -68,8 +69,8 @@ async def f1(mongo_object_id: str):
         pub_date=datetime.strptime(item[0]["pubDate"], "%Y-%m-%d"),
         author=item[0]["author"],
         cover=f"{isbn13}.jpg",
-        created_at=datetime.utcnow() + timedelta(hours=9),
-        updated_at=datetime.utcnow() + timedelta(hours=9),
+        created_at=now,
+        updated_at=now,
     )
 
     # cover 이미지가 aws에 있는지 확인

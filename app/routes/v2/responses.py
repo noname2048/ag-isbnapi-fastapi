@@ -25,7 +25,7 @@ async def check_request_manually():
     return {"book": book, "request": request}
 
 
-@router.get("/responses/make/many")
+@router.get("/responses/makemany")
 async def check_request_many(background_task: BackgroundTasks):
     """
     여러개를 동시에 만들자.
