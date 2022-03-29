@@ -42,3 +42,12 @@ async def check_request_many(background_task: BackgroundTasks):
     isbns = [req.isbn for req in requests]
     background_task.add_task(f2, requests=requests)
     return {"isbns": isbns, "msg": "대기열에 추가되었습니다."}
+
+
+@router.get("/responses")
+async def list_responses():
+    engine = singleton_mongodb.engine
+    books = await engine.find(Book, sort=Book.updated_at.desc())
+    if not books:
+        return []
+    return books
