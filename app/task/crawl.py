@@ -9,7 +9,7 @@ from boto3 import resource
 from app.odmantic.connect import singleton_mongodb
 from app.odmantic.models import Request, Book
 from app.common.config import settings
-from app.exceptions import crawl_error
+from app.exceptions import APIExceptionV2, crawl_error
 from app.utils.logger import mylogger
 
 aladin_api_url = "http://www.aladin.co.kr/ttb/api/ItemLookUp.aspx"
@@ -18,6 +18,7 @@ isbn13_pattern = re.compile(r"^\d{13}$")
 
 
 async def f1(mongo_object_id: str):
+    mylogger.debug("f1")
 
     # parameter를 바탕으로 request 불러오기
     engine = singleton_mongodb.engine
@@ -100,6 +101,9 @@ async def f2(id_list: List):
     l = len(id_list)
     for idx, id in enumerate(id_list):
         mylogger.debug(f"f2 - {idx}/{l}")
-        book = await f1(id)
+        try:
+            book = await f1(id)
+        except APIExceptionV2 as c_exception:
+            mylogger.warn(f"cc error - {c_exception.msg}")
         books.append(book)
     return books

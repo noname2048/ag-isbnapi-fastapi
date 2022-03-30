@@ -23,10 +23,11 @@ def init_repeat_crawl(app: FastAPI):
             mylogger.info("no requests find! - crawl end")
 
         else:
-            request_len = len(requests)
-            mylogger.warn(f"start crawl {request_len}")
+            id_list = [request.id for request in requests]
+            id_len = len(id_list)
+            mylogger.warn(f"start crawl {id_len}")
 
-            books = await f2(requests)
+            books = await f2(id_list)
 
             book_len = len(books)
             mylogger.info(f" repeat crawl end!")

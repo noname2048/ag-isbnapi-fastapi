@@ -2,7 +2,21 @@ from starlette import status
 from app.exceptions import APIException, APIExceptionV2
 
 
-class RequestExsist(APIExceptionV2):
+class RequestException(APIExceptionV2):
+    """
+    다른 exception 과 차이를 두기위한 자신만의 exception
+    이 에러는 메세지를 표기하고, response로 유저에게 표시할 문구를 가져야한다.
+    """
+
+    def __init__(self):
+        super().__init__(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            msg="undefined",
+            description="undefined",
+        )
+
+
+class RequestExsist(RequestException):
     def __init__(self):
         super().__init__(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -11,7 +25,7 @@ class RequestExsist(APIExceptionV2):
         )
 
 
-class RequeustFileTooBig(APIException):
+class RequeustFileTooBig(RequestException):
     def __init__(self, ex: Exception = None):
         super().__init__(
             status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
