@@ -10,6 +10,7 @@ from app.odmantic.connect import singleton_mongodb
 from app.odmantic.models import Request, Book
 from app.common.config import settings
 from app.exceptions import crawl_error
+from app.utils.logger import mylogger
 
 aladin_api_url = "http://www.aladin.co.kr/ttb/api/ItemLookUp.aspx"
 ttbkey = settings.aladin_ttbkey
@@ -94,8 +95,11 @@ async def f1(mongo_object_id: str):
 
 
 async def f2(id_list: List):
+    mylogger.debug("f2")
     books = []
-    for id in list:
+    l = len(id_list)
+    for idx, id in enumerate(id_list):
+        mylogger.debug(f"f2 - {idx}/{l}")
         book = await f1(id)
         books.append(book)
     return books

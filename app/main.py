@@ -30,6 +30,8 @@ from app.middlewares.api_error_handler import (
     api_logger_b,
 )
 
+from app.utils.repeat_crawl import init_repeat_crawl
+
 app_name = "isbnapi"
 
 
@@ -92,6 +94,7 @@ def create_app() -> FastAPI:
     #     prefix="/api/v1",
     #     dependencies=Depends(API_KEY_HEADER),
     # )
+    init_repeat_crawl(app)
     return app
 
 
