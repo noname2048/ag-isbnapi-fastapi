@@ -30,6 +30,7 @@ async def f1(mongo_object_id: str):
     if not isbn13_pattern.match(isbn13):
         raise crawl_error.IsbnPatternError()
 
+    mylogger.debug("f1 - aladin")
     # 알라딘에 isbn13으로 요청
     response = requests.post(
         aladin_api_url,
@@ -44,6 +45,7 @@ async def f1(mongo_object_id: str):
     if response.status_code != 200:
         raise crawl_error.AladinResponseError("알라딘에서 200이 아닌 응답을 수신")
 
+    mylogger.debug("f1 - jsonize")
     # 반환받은 text를 json으로 변경
     try:
         text = response.text[:-1]
@@ -59,6 +61,7 @@ async def f1(mongo_object_id: str):
         await engine.save(request)
         raise crawl_error.AladinItemNotFound()
 
+    mylogger.debug("f1 - bookinfo")
     # 변환된 json에서 필요한 book 데이터 추출
     img_url = item[0]["cover"]
     now = datetime.utcnow + timedelta(hours=9)
@@ -75,6 +78,7 @@ async def f1(mongo_object_id: str):
         updated_at=now,
     )
 
+    mylogger.debug("f1 - aws")
     # cover 이미지가 aws에 있는지 확인
     bucket = resource(
         "s3",
@@ -91,6 +95,7 @@ async def f1(mongo_object_id: str):
             img_res = requests.get(img_url)
             obj.upload_fileobj(img_res.raw)
 
+    mylogger.debug("f1 - return")
     saved_book = await engine.save(new_book)
     return saved_book
 
