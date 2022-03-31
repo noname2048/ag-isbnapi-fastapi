@@ -18,7 +18,6 @@ isbn13_pattern = re.compile(r"^\d{13}$")
 
 
 async def f1(mongo_object_id: str):
-    mylogger.debug("f1")
 
     # parameter를 바탕으로 request 불러오기
     engine = singleton_mongodb.engine
@@ -30,7 +29,6 @@ async def f1(mongo_object_id: str):
     if not isbn13_pattern.match(isbn13):
         raise crawl_error.IsbnPatternError()
 
-    mylogger.debug("f1 - aladin")
     # 알라딘에 isbn13으로 요청
     response = requests.post(
         aladin_api_url,
@@ -45,7 +43,6 @@ async def f1(mongo_object_id: str):
     if response.status_code != 200:
         raise crawl_error.AladinResponseError("알라딘에서 200이 아닌 응답을 수신")
 
-    mylogger.debug("f1 - jsonize")
     # 반환받은 text를 json으로 변경
     try:
         text = response.text[:-1]
@@ -61,7 +58,6 @@ async def f1(mongo_object_id: str):
         await engine.save(request)
         raise crawl_error.AladinItemNotFound()
 
-    mylogger.debug("f1 - bookinfo")
     # 변환된 json에서 필요한 book 데이터 추출
     img_url = item[0]["cover"]
     now = datetime.utcnow() + timedelta(hours=9)
@@ -78,7 +74,6 @@ async def f1(mongo_object_id: str):
         updated_at=now,
     )
 
-    mylogger.debug("f1 - aws")
     # cover 이미지가 aws에 있는지 확인
     bucket = resource(
         "s3",
@@ -91,11 +86,11 @@ async def f1(mongo_object_id: str):
     try:
         obj.load()
     except Exception as e:
+        # TODO: 정확한 Exception 작성하기
         if e.response["Error"]["Code"] == 404:
             img_res = requests.get(img_url)
             obj.upload_fileobj(img_res.raw)
 
-    mylogger.debug("f1 - return")
     saved_book = await engine.save(new_book)
     return saved_book
 
@@ -112,3 +107,8 @@ async def f2(id_list: List):
             mylogger.warn(f"cc error - {c_exception.msg}")
         books.append(book)
     return books
+
+
+# TODO: 백그라운드와 뷰 단에서 각각 f1을 호출 할 수 있는데,
+# 어디서 호출했냐에 따라서 에러처리가 다를 수 있다.
+# 그러나 같은 오류를 여러번 호출 할 수 없기에, 최소한의 Book Response 대용을 만들어야함
