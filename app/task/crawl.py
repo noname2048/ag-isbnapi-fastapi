@@ -64,7 +64,7 @@ async def f1(mongo_object_id: str):
     mylogger.debug("f1 - bookinfo")
     # 변환된 json에서 필요한 book 데이터 추출
     img_url = item[0]["cover"]
-    now = datetime.utcnow + timedelta(hours=9)
+    now = datetime.utcnow() + timedelta(hours=9)
     new_book = Book(
         title=item[0]["title"],
         description=item[0]["description"],
