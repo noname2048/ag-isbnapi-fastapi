@@ -92,6 +92,11 @@ async def f1(mongo_object_id: str):
             obj.upload_fileobj(img_res.raw)
 
     saved_book = await engine.save(new_book)
+    if request.status == "requested":
+        request.status = "responded"
+    elif request.status == "need update":
+        request.status = "updated"
+    await engine.save(request)
     return saved_book
 
 
