@@ -9,6 +9,8 @@ from app.odmantic.models import Request, Book
 import logging
 from pydantic import BaseModel
 
+from odmantic.exceptions import DocumentNotFoundError
+
 router = APIRouter()
 
 
@@ -30,17 +32,34 @@ async def echo_text(isbn: Request):
 
 @router.get("/test/db/clean")
 async def clean_db(background_task: BackgroundTasks):
-    background_task.add_task(delete_all)
+    background_task.add_task(bt_clean_db)
 
     return {"msg": "start clean"}
 
 
-async def delete_all():
+async def bt_clean_db():
+    mylogger.warn("start background: clean_db")
     engine = singleton_mongodb.engine
-    requests = await engine.find(Request, {})
-    books = await engine.find(Book, {})
-    for request in requests:
-        await engine.delete(request)
-    for book in books:
-        await engine.delete(book)
+    mylogger.info("clean_db: start delete requests")
+    await k1(Request)
+    mylogger.info("clean_db: start delete books")
+    await k1(Book)
     mylogger.warn("delete done.")
+
+
+async def k1(model: BaseModel):
+    engine = singleton_mongodb.engine
+    instances = await engine.find(model, {}, limit=100)
+    max_roll = 20
+    roll_cnt = 0
+    try:
+        while instances:
+            for instance in instances:
+                await engine.delete(instance)
+            instances = await engine.find(model, {}, limit=100)
+            if roll_cnt >= max_roll:
+                break
+            else:
+                roll_cnt += 1
+    except DocumentNotFoundError as e:
+        mylogger.warn("error: k1")
