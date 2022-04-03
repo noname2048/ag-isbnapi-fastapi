@@ -1,6 +1,7 @@
 from typing import Optional
 from odmantic import Model
 from datetime import datetime
+from pydantic import SecretStr
 
 
 class Request(Model):
@@ -28,3 +29,8 @@ class Book(Model):
 
     class Config:
         collection = "books"
+
+
+class User(Model):
+    email: str
+    password: SecretStr
