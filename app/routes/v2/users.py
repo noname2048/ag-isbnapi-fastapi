@@ -12,3 +12,11 @@ async def list_users():
     engine = singleton_mongodb.engine
     users = await engine.find(User, limit=100)
     return users
+
+
+@router.post("/users")
+async def make_user(email: str, password: str):
+    engine = singleton_mongodb.engine
+    user = User(email=email, password=password)
+    await engine.save(user)
+    return user
