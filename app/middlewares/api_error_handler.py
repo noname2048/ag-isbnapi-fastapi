@@ -4,6 +4,8 @@ import time
 
 from app.exceptions import APIException, APIExceptionV2
 from app.exceptions.request_error import RequestException
+from app.exceptions.base import APIExceptionBase
+
 from app.utils.logger import mylogger
 
 
@@ -42,6 +44,15 @@ async def api_erroer_handler(request: Request, call_next):
             status_code=api_exception.status_code,
         )
         return response
+
+    except APIExceptionBase as api_exception:
+        mylogger.warn(f"capture error - {api_exception.msg}")
+        resposne = JSONResponse(
+            content={
+                "msg": api_exception.eng_msg,
+            },
+            status_code=api_exception.status_code,
+        )
 
 
 async def api_logger_A(request: Request, call_next):
