@@ -1,16 +1,12 @@
-from app.exceptions import APIExceptionV2
+from starlette import status
+from app.exceptions.base import APIExceptionBase
 
 
-class UserError(APIExceptionV2):
-    def __init__(self):
-        super().__init__(
-            status_code=404,
-            msg="user error",
-            str="no description",
-        )
+class UserManagementError(APIExceptionBase):
+    category: str = "UserManagementError"
 
 
-class EmailOrPasswordNotMatch(UserError):
-    def __init__(self):
-        super()
-        """이런식으로 작성하면 다중상속에 불편함이 생기는디."""
+class EmailOrPasswordNotMatch(UserManagementError):
+    status_code: str = status.HTTP_400_BAD_REQUEST
+    eng_msg: str = "Not matched."
+    description: str = "Email or Password not match"
