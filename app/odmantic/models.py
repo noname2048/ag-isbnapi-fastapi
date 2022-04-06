@@ -34,3 +34,4 @@ class Book(Model):
 class User(Model):
     email: str
     password: SecretStr
+    salt: SecretStr
