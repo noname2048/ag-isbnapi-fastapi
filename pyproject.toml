@@ -35,6 +35,7 @@ psycopg2-binary = "^2.9.3"
 pandas = "^1.4.1"
 jupyterlab = "^3.2.9"
 fastapi-utils = "^0.2.1"
+passlib = {extras = ["bcrypt"], version = "^1.7.4"}
 
 [tool.poetry.dev-dependencies]
 jupyterlab = "^3.0.16"
