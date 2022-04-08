@@ -79,17 +79,30 @@ class UserInDB(User):
     hashed_password: str
 
 
-def hash_password(password):
+def make_password(password) -> str:
     salt = os.urandom(15)
     salt = binascii.b2a_hex(salt)
-    hashed_password = pwd_context.hash(password)
+    result = hash_password(f"{password}_{salt}")
+    return result, salt
 
-    return salt, hashed_password
+
+def hash_password(password) -> str:
+    hashed_password = pwd_context.hash(password)
+    return hashed_password
 
 
 def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
 
 
-def authenticate_user(email, password):
-    pass
+async def authenticate_user(email, password):
+    engine = singleton_mongodb.engine
+    user = await engine.find_one(User, User.email == email)
+    if not user:
+        return False
+    salt = user.salt
+    auth = verify_password(f"{password}_{salt}", user.password)
+    if not auth:
+        return False
+
+    return True
