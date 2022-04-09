@@ -1,4 +1,5 @@
 from doctest import FAIL_FAST
+from http.client import HTTPException
 from fastapi import APIRouter, Depends
 from fastapi.security import OAuth2PasswordBearer
 from pydantic.types import SecretStr
@@ -110,10 +111,16 @@ async def authenticate_user(email, password):
 
 from datetime import datetime, timedelta
 from jose import JWTError, jwt
+from starlette import status
 
 
-def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
-    to_encode = data.copy()
+def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
+    """주어진 데이터를 통해 토큰을 만들어 반환합니다
+
+    처음에 주어진 데이터에 만료시간을 새로 설정하여
+    토큰을 생성합니다.
+    """
+    to_encode = data.copy()  # 얕은 복사
     if expires_delta:
         expire = datetime.utcnow() + expires_delta
     else:
@@ -121,3 +128,24 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, TEST_SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
+
+
+async def get_current_user(token: str = Depends(oauth2_scheme)):
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+
+    try:
+        payload = jwt.encode(token, TEST_SECRET_KEY, algorithm=[ALGORITHM])
+        email: str = payload.get("sub")
+        if email is None:
+            raise credentials_exception
+        token_data = TokenData(email=email)
+    except JWTError:
+        raise credentials_exception
+    user = get_user()
+    if user is None:
+        raise credentials_exception
+    return user
