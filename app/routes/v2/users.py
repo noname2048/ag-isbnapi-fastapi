@@ -1,4 +1,3 @@
-from doctest import FAIL_FAST
 from http.client import HTTPException
 from fastapi import APIRouter, Depends
 from fastapi.security import OAuth2PasswordBearer
@@ -6,8 +5,14 @@ from pydantic.types import SecretStr
 
 from app.odmantic.connect import singleton_mongodb
 from app.odmantic.models import User
+from app.auth.user import get_current_user
 
 router = APIRouter()
+
+
+@router.get("/users/me", response_model=User)
+async def identify_self(current_user: User = Depends(get_current_user)):
+    return current_user
 
 
 @router.get("/users")
