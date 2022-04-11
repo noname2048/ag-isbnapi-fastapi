@@ -10,6 +10,7 @@ from app.odmantic.models import User
 from app.auth.user import get_current_user
 from app.auth.password import verify_password, hash_password_with_salt
 from app.auth.token import create_access_token
+from app.auth import authenticate_user
 
 router = APIRouter()
 
@@ -21,10 +22,9 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
     user = await engine.find_one(User, User.email == email)
     if not user:
         raise EmailOrPasswordNotMatch
-    hashed_password = hash_password_with_salt(form_data.password, user.salt)
-    if hashed_password != User.hashed_password:
+    if authenticate_user(email, form_data.password):
         raise EmailOrPasswordNotMatch
-    return {"access_token": create_access_token()}
+    return {"access_token": create_access_token({"email": email})}
 
 
 @router.get("/users/me", response_model=User)
