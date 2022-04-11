@@ -6,3 +6,7 @@ from app.odmantic import get_engine
 
 
 engine = get_engine()
+
+
+async def authenticate_user(email, password):
+    pass

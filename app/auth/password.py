@@ -13,5 +13,9 @@ def make_hashed_password_with_salt(plain_password: str, salt):
     return hashed_password
 
 
+def hash_password_with_salt(password, salt):
+    return hash_password(f"{password}_{salt}")
+
+
 def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)

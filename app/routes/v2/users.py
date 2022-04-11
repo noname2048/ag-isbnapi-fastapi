@@ -1,13 +1,30 @@
 from http.client import HTTPException
 from fastapi import APIRouter, Depends
-from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from pydantic.types import SecretStr
 
+from app.exceptions.user_errors import EmailOrPasswordNotMatch
 from app.odmantic.connect import singleton_mongodb
+from app.odmantic import get_engine
 from app.odmantic.models import User
 from app.auth.user import get_current_user
+from app.auth.password import verify_password, hash_password_with_salt
+from app.auth.token import create_access_token
 
 router = APIRouter()
+
+
+@router.post("/users/token")
+async def login(form_data: OAuth2PasswordRequestForm = Depends()):
+    engine = get_engine()
+    email = form_data.username
+    user = await engine.find_one(User, User.email == email)
+    if not user:
+        raise EmailOrPasswordNotMatch
+    hashed_password = hash_password_with_salt(form_data.password, user.salt)
+    if hashed_password != User.hashed_password:
+        raise EmailOrPasswordNotMatch
+    return {"access_token": create_access_token()}
 
 
 @router.get("/users/me", response_model=User)

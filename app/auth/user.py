@@ -35,7 +35,7 @@ async def get_user(email: str):
 
 
 async def get_current_user(token: str = Depends(oauth2_scheme)):
-    # 함수안에서 새로이 인스턴스를 만드는 이유는?
+    # 함수안에서 새로이 인스턴스를 만드는 이유는? 글쎄 딱히 모르겠는데...
     # credentials_exception = HTTPException(
     #     status_code=status.HTTP_401_UNAUTHORIZED,
     #     detail="Could not validate credentials",
