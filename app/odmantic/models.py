@@ -33,5 +33,5 @@ class Book(Model):
 
 class User(Model):
     email: str
-    password: SecretStr
+    hashed_password: SecretStr
     salt: SecretStr
