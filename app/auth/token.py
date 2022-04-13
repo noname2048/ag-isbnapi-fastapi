@@ -2,7 +2,6 @@ from typing import Optional
 from datetime import timedelta, datetime
 from jose import jwt, JWTError
 
-from app.routes.v2.users import ALGORITHM
 
 # openssl rand -hex 32
 SECRET_KEY = "b878d60ae6e11afc2cd07cf7b9a64eb3cdd00055130e60f72b4f8d924304c406"
