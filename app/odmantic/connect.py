@@ -6,8 +6,8 @@ from fastapi import FastAPI
 
 
 class MongoDB:
-    client = None
-    engine = None
+    _client = None
+    _engine = None
 
     def attach_event(self, app: FastAPI):
         @app.on_event("startup")
