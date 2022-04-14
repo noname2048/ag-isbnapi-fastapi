@@ -5,12 +5,12 @@ from fastapi.security import OAuth2PasswordBearer
 from app.odmantic import get_engine
 from app.auth.password import hash_password_with_salt, verify_password
 from app.auth.user import get_user
+from odmantic import AIOEngine
 
 
-engine = get_engine()
-
-
-async def authenticate_user(email, password):
+async def authenticate_user(
+    email: str, password: str, engine: AIOEngine = Depends(get_engine)
+):
     user = await get_user(email)
     if not user:
         return False

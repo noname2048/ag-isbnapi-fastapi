@@ -1,4 +1,5 @@
 from typing import Optional
+from odmantic import AIOEngine
 from pydantic import BaseModel
 
 from starlette import status
@@ -26,8 +27,7 @@ credentials_exception = HTTPException(
 )
 
 
-async def get_user(email: str):
-    engine = get_engine()
+async def get_user(email: str, engine: AIOEngine = Depends(get_engine)):
     user = await engine.find_one(User, User.email == email)
     if user:
         return user
