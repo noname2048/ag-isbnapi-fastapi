@@ -1,6 +1,7 @@
 from http.client import HTTPException
 from fastapi import APIRouter, Depends
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from odmantic import AIOEngine
 from pydantic.types import SecretStr
 
 from app.exceptions.user_errors import EmailOrPasswordNotMatch
@@ -16,8 +17,10 @@ router = APIRouter()
 
 
 @router.post("/users/token")
-async def login(form_data: OAuth2PasswordRequestForm = Depends()):
-    engine = get_engine()
+async def login(
+    form_data: OAuth2PasswordRequestForm = Depends(),
+    engine: AIOEngine = Depends(get_engine),
+):
     email = form_data.username
     user = await engine.find_one(User, User.email == email)
     if not user:
@@ -33,15 +36,18 @@ async def identify_self(current_user: User = Depends(get_current_user)):
 
 
 @router.get("/users")
-async def list_users():
-    engine = singleton_mongodb.engine
+async def list_users(engine: AIOEngine = Depends(get_engine)):
     users = await engine.find(User, limit=100)
     return users
 
 
 @router.post("/users")
 async def make_user(
-    email1: str, email2: str, password1: SecretStr, password2: SecretStr
+    email1: str,
+    email2: str,
+    password1: SecretStr,
+    password2: SecretStr,
+    engine: AIOEngine = Depends(get_engine),
 ):
     if email1 != email2 or password1 != password2:
         pass
