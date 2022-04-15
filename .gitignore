@@ -16,3 +16,6 @@ naver_api_client.json
 
 background.log
 tmp/
+
+# alembic settings
+**/alembic.ini
