@@ -78,8 +78,8 @@ mongo_db = _MongoDB()
 
 
 async def connect_db():
-    await mongo_db.connect()
+    mongo_db.connect()
 
 
 async def close_db():
-    await mongo_db.close()
+    mongo_db.close()

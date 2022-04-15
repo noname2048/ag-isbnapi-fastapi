@@ -16,7 +16,7 @@ from app.auth import authenticate_user
 router = APIRouter()
 
 
-@router.post("/users/token")
+@router.post("/user/token")
 async def login(
     form_data: OAuth2PasswordRequestForm = Depends(),
     engine: AIOEngine = Depends(get_engine),
