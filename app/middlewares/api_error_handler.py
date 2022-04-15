@@ -27,7 +27,7 @@ async def api_erroer_handler(request: Request, call_next):
         return response
 
     except APIExceptionV2 as api_exception:
-        mylogger.warn(f"capture exceptionv2 - {api_exception.msg}")
+        mylogger.warn(f"capture APIExceptionV2 - {api_exception.msg}")
         response = JSONResponse(
             content={
                 "msg": api_exception.msg,
@@ -38,7 +38,7 @@ async def api_erroer_handler(request: Request, call_next):
         return response
 
     except APIException as api_exception:
-        mylogger.warn(f"capture error - {api_exception.msg}")
+        mylogger.warn(f"capture APIException - {api_exception.msg}")
         response = JSONResponse(
             content={"msg": api_exception.msg},
             status_code=api_exception.status_code,
@@ -46,13 +46,14 @@ async def api_erroer_handler(request: Request, call_next):
         return response
 
     except APIExceptionBase as api_exception:
-        mylogger.warn(f"capture error - {api_exception.eng_msg}")
+        mylogger.warn(f"capture APIExceptionBase - {api_exception.eng_msg}")
         resposne = JSONResponse(
             content={
                 "msg": api_exception.eng_msg,
             },
             status_code=api_exception.status_code,
         )
+        return response
 
 
 async def api_logger_A(request: Request, call_next):
