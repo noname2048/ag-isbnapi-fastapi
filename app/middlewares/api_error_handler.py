@@ -47,7 +47,7 @@ async def api_erroer_handler(request: Request, call_next):
 
     except APIExceptionBase as api_exception:
         mylogger.warn(f"capture APIExceptionBase - {api_exception.eng_msg}")
-        resposne = JSONResponse(
+        response = JSONResponse(
             content={
                 "msg": api_exception.eng_msg,
             },
