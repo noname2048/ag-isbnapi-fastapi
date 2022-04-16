@@ -41,11 +41,11 @@ def create_app() -> FastAPI:
     :return: 설정된 FastAPI app
     """
     app = FastAPI()
-    postgresql_db.init_sqlalchemy(
-        app=app,
-        dsn=settings.postgresql_dsn,
-        echo=False,
-    )
+    # postgresql_db.init_sqlalchemy(
+    #     app=app,
+    #     dsn=settings.postgresql_dsn,
+    #     echo=False,
+    # )
     singleton_mongodb.attach_event(app)
     mongodb.init_motor(
         app=app,
