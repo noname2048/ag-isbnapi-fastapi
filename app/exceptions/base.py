@@ -5,6 +5,7 @@ class APIExceptionBase(Exception):
     """
     APIException -> APIExceptionV2 -> APIExceptionBase 로 진화
     전버전에서 다중상속에서 어려움이 발생해서 속성으로 사용하도록 변경
+    최종 super의 init에서 미구현체를 발견하면 raise 하도록 설정
     """
 
     status_code: int = status.HTTP_500_INTERNAL_SERVER_ERROR

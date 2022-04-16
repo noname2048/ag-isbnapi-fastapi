@@ -21,11 +21,10 @@ from datetime import datetime
 from fastapi import FastAPI, Request
 
 import logging
-
 from fastapi.logger import logger
 
 # logger = logging.getLogger("fastapi")
-# logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 
 
 async def access_control(request: Request, call_next):
@@ -36,7 +35,7 @@ async def access_control(request: Request, call_next):
     if "," in ip:
         ip = ip.split(",")[0]
     request.state.ip = ip
-    logger.info("request.state.ip")
+    # logger.info("request.state.ip")
     logger.info("hi")
 
     response = await call_next(request)
