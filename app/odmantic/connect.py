@@ -16,6 +16,8 @@ class MongoDB:
             self._engine = AIOEngine(
                 motor_client=self._client, database=settings.mongodb_name
             )
+            if self._engine is None:
+                raise Exception(msg="mongo db init fail")
 
         @app.on_event("shutdown")
         def shutdown():
