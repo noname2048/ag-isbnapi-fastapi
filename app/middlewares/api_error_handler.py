@@ -40,7 +40,10 @@ async def api_erroer_handler(request: Request, call_next):
     except APIException as api_exception:
         mylogger.warn(f"capture error - {api_exception.msg}")
         response = JSONResponse(
-            content={"msg": api_exception.msg},
+            content={
+                "msg": api_exception.msg,
+                "type": api_exception.__class__.__name__,
+            },
             status_code=api_exception.status_code,
         )
         return response
@@ -50,6 +53,8 @@ async def api_erroer_handler(request: Request, call_next):
         resposne = JSONResponse(
             content={
                 "msg": api_exception.eng_msg,
+                "detail": api_exception.description,
+                "type": api_exception.__class__.__name__,
             },
             status_code=api_exception.status_code,
         )
