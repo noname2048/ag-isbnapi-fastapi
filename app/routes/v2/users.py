@@ -16,6 +16,18 @@ from app.auth import authenticate_user
 router = APIRouter()
 
 
+@router.post("/user/register")
+async def register(email: str, password: SecretStr):
+    engine: AIOEngine = get_engine()
+    user = await engine.find_one(User, User.email == email)
+    if user:
+        raise Exception("email already used.")
+    hashed_password, salt = hashed_password(password)
+    User(email=email, salt=salt, hashed_password=password)
+    token: str = create_access_token({"email": email})
+    return {"token": token}
+
+
 @router.post("/user/token")
 async def login(
     form_data: OAuth2PasswordRequestForm = Depends(),
