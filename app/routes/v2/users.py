@@ -1,5 +1,5 @@
 from http.client import HTTPException
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Body, Depends
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from odmantic import AIOEngine
 from pydantic.types import SecretStr
@@ -17,7 +17,7 @@ router = APIRouter()
 
 
 @router.post("/user/register")
-async def register(email: str, password: SecretStr):
+async def register(email: str = Body(...), password: str = Body(...)):
     engine: AIOEngine = get_engine()
     user = await engine.find_one(User, User.email == email)
     if user:
