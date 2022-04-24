@@ -8,6 +8,7 @@ import re
 from starlette import status
 from fastapi import (
     APIRouter,
+    BackgroundTasks,
     Body,
     File,
     UploadFile,
@@ -36,9 +37,10 @@ async def list_requests(limit: int = Query(10, ge=5, le=100)):
     return []
 
 
-@router.post("/requests")
+@router.post("/request")
 async def make_request(
-    isbn: str = Body(..., regex=r"^\d{13}$"), update: bool = Body(False)
+    isbn: str = Body(..., regex=r"^\d{13}$"),
+    update: bool = Body(False),
 ):
     """리퀘스트를 신청 받습니다.
     1. db에 있는지 확인하기
