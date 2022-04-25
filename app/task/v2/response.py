@@ -148,6 +148,8 @@ async def respond_single_request(obj_id: str):
 
 
 async def respond_multiple_request(id_list: list):
-    f = lambda x: await respond_single_request(x)
+    async def f(x):
+        await respond_single_request(x)
+
     result = [1 if f(id) == True else 0 for id in id_list]
     return result
