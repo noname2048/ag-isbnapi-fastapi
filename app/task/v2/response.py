@@ -10,7 +10,7 @@ from botocore.exceptions import ClientError
 
 from app.common.config import settings
 from app.odmantic import get_engine
-from odmantic import AIOEngine
+from odmantic import AIOEngine, ObjectId
 from app.odmantic.models import Request, Book, RequestForm
 from app.utils.logger import mylogger
 
@@ -80,11 +80,13 @@ def upload_aws(url, isbn):
 
 
 async def process_single_request(engine: AIOEngine, request_form: RequestForm) -> Book:
-    isbn13 = request_form.isbn13
+    isbn13 = request_form.isbn
     if not isbn13_pattern.match(isbn13):
+        mylogger.warn("Unvalid ISBN format")
         raise RequestFormResponseError("Unvalid ISBN format")
 
-    book = await engine.find_one(Book, Book.isbn13 == request_form.isbn)
+    mylogger.debug("CHECK B")
+    book = await engine.find_one(Book, Book.isbn13 == int(request_form.isbn))
     if book and request_form.update_option == False:
         raise RequestFormResponseError("No update option but book exists")
 
@@ -99,7 +101,7 @@ async def process_single_request(engine: AIOEngine, request_form: RequestForm) -
         },
     )
     if response.status_code != 200:
-        mylogger.warn("Cannot fetch with Aladin")
+        raise RequestFormResponseError("Cannot fetch with Aladin")
 
     try:
         text = response.text[:-1]
@@ -127,7 +129,7 @@ async def process_single_request(engine: AIOEngine, request_form: RequestForm) -
     return book
 
 
-async def respond_single_request(obj_id: str):
+async def respond_single_request(obj_id: ObjectId):
     engine = get_engine()
     request_form = await engine.find_one(RequestForm, RequestForm.id == obj_id)
     if not request_form:
@@ -135,7 +137,7 @@ async def respond_single_request(obj_id: str):
         return False
 
     try:
-        book = await process_single_request(request_form)
+        book = await process_single_request(engine, request_form)
     except RequestFormResponseError as e:
         mylogger.warn(f"{e.status_msg} ({request_form.isbn})")
         kst = datetime.utcnow() + timedelta(hours=9)
