@@ -1,9 +1,10 @@
 from typing import IO, List, Optional
-from datetime import datetime
+from datetime import datetime, timedelta
 import shutil
 from tempfile import NamedTemporaryFile
 import csv
 import re
+from unicodedata import category
 
 from starlette import status
 from fastapi import (
@@ -19,8 +20,9 @@ from fastapi import (
 )
 from pydantic import BaseModel, Field
 
+from app.odmantic import get_engine
 from app.odmantic.connect import singleton_mongodb
-from app.odmantic.models import Request
+from app.odmantic.models import Request, Book, RequestForm
 from app.exceptions import request_error
 from app.utils.logger import mylogger
 
@@ -37,6 +39,23 @@ async def list_requests(limit: int = Query(10, ge=5, le=100)):
     return []
 
 
+from app.exceptions.base import APIExceptionBase
+
+
+class AddUpdateFlag(APIExceptionBase):
+    status_code: int = status.HTTP_400_BAD_REQUEST
+    eng_msg = "need update flag"
+    description = "book already exist"
+    category = "request"
+
+
+class TooRecentUpdate(APIExceptionBase):
+    status_code = status.HTTP_400_BAD_REQUEST
+    eng_msg = "too recent update"
+    description = "updated in 6 hours"
+    category = "request"
+
+
 @router.post("/request")
 async def make_request(
     isbn: str = Body(..., regex=r"^\d{13}$"),
@@ -47,27 +66,26 @@ async def make_request(
     2. 있으면 업데이트 플래그 확인하기
     3. 없으면 새로 만들기
     """
-    engine = singleton_mongodb.engine
-    request = await engine.find_one(Request, {"isbn": isbn})
-    now = datetime.utcnow()
-    if request and update:
-        request.status = "need update"
-        request.updated_at = now
-        await engine.save(request)
-        return request
+    engine = get_engine()
+    book = await engine.find_one(Book, Book.isbn13 == int(isbn))
+    if not update:
+        raise AddUpdateFlag()
 
-    if request:
-        raise request_error.RequestExsist()
+    if update:
+        kst = datetime.utcnow() + timedelta(hours=9)
+        rf = await engine.find_one(
+            RequestForm, RequestForm.request_date > (kst - timedelta(hours=6))
+        )
+        if rf:
+            raise TooRecentUpdate()
 
-    mylogger.warn(f"log -- make request {isbn}")
-    new_request = Request(
+    rf = RequestForm(
+        request_date=kst,
         isbn=isbn,
-        created_at=now,
-        updated_at=now,
-        status="requested",
+        update_option=bool,
     )
-    request = await engine.save(new_request)
-    return request
+    rf = await engine.save(rf)
+    return rf
 
 
 class SingleRequestForm(BaseModel):
