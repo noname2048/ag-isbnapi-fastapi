@@ -5,7 +5,6 @@ from tempfile import NamedTemporaryFile
 import csv
 import re
 from unicodedata import category
-
 from starlette import status
 from fastapi import (
     APIRouter,
@@ -25,34 +24,38 @@ from app.odmantic.connect import singleton_mongodb
 from app.odmantic.models import Request, Book, RequestForm
 from app.exceptions import request_error
 from app.utils.logger import mylogger
+from app.exceptions.base import APIExceptionBase
 
 router = APIRouter()
 
 
 @router.get("/requests")
-async def list_requests(limit: int = Query(10, ge=5, le=100)):
+async def list_requests(limit: int = Query(10, ge=5, le=10)):
     """최근 리퀘스트를 보여줍니다. 5~100개까지 보여줍니다."""
-    engine = singleton_mongodb.engine
-    requests = await engine.find(Request, {}, limit=limit)
+    engine = get_engine()
+    requests = await engine.find(RequestForm, limit=limit)
     if requests:
         return requests
-    return []
-
-
-from app.exceptions.base import APIExceptionBase
 
 
 class AddUpdateFlag(APIExceptionBase):
     status_code: int = status.HTTP_400_BAD_REQUEST
     eng_msg = "need update flag"
-    description = "book already exist"
+    description = "request form exist, but update flag is false"
+    category = "request"
+
+
+class InProcess(APIExceptionBase):
+    status_code: int = status.HTTP_425_TOO_EARLY
+    eng_msg = "prev is not processed"
+    description = "wait until prev processed"
     category = "request"
 
 
 class TooRecentUpdate(APIExceptionBase):
     status_code = status.HTTP_400_BAD_REQUEST
     eng_msg = "too recent update"
-    description = "updated in 6 hours"
+    description = "already updated in 6 hours"
     category = "request"
 
 
@@ -61,30 +64,30 @@ async def make_request(
     isbn: str = Body(..., regex=r"^\d{13}$"),
     update: bool = Body(False),
 ):
-    """리퀘스트를 신청 받습니다.
-    1. db에 있는지 확인하기
-    2. 있으면 업데이트 플래그 확인하기
-    3. 없으면 새로 만들기
-    """
+    """리퀘스트를 신청 받습니다."""
     engine = get_engine()
-    book = await engine.find_one(Book, Book.isbn13 == int(isbn))
-    if not update:
-        raise AddUpdateFlag()
+    rf = await engine.find_one(RequestForm, RequestForm.isbn == isbn)
+    if not update and rf:
+        if not rf.response_date:
+            raise InProcess()
+        else:
+            raise AddUpdateFlag()
 
-    if update:
-        kst = datetime.utcnow() + timedelta(hours=9)
-        rf = await engine.find_one(
-            RequestForm, RequestForm.request_date > (kst - timedelta(hours=6))
-        )
-        if rf:
+    kst = datetime.utcnow() + timedelta(hours=9)
+    if update and rf:
+        if not rf.response_date:
+            raise InProcess()
+        if rf.response_date > kst - timedelta(hours=6):
             raise TooRecentUpdate()
 
     rf = RequestForm(
         request_date=kst,
         isbn=isbn,
-        update_option=bool,
+        update_option=update,
     )
+
     rf = await engine.save(rf)
+    mylogger.info(f"add {rf.isbn}")
     return rf
 
 

@@ -41,6 +41,7 @@ def item_to_book(item) -> Book:
         pub_date=datetime.strptime(item[0]["pubDate"], "%Y-%m-%d"),
         author=item[0]["author"],
         cover=item[0]["cover"],
+        raw_cover=item[0]["cover"],
         created_at=kst,
         updated_at=kst,
     )
@@ -56,6 +57,7 @@ def update_book_with_item(item, book: Book) -> Book:
     book.pub_date = datetime.strptime(item[0]["pubDate"], "%Y-%m-%d")
     book.author = item[0]["author"]
     book.cover = item[0]["cover"]
+    book.raw_cover = item[0]["cover"]
     book.updated_at = kst
     return book
 
@@ -72,6 +74,7 @@ def upload_aws(url, isbn):
     try:
         obj.load()
         mylogger.warn(f"image already uploaded ({isbn})")
+
     except ClientError as e:
         res = requests.get(url)
         img = res.raw
@@ -85,7 +88,6 @@ async def process_single_request(engine: AIOEngine, request_form: RequestForm) -
         mylogger.warn("Unvalid ISBN format")
         raise RequestFormResponseError("Unvalid ISBN format")
 
-    mylogger.debug("CHECK B")
     book = await engine.find_one(Book, Book.isbn13 == int(request_form.isbn))
     if book and request_form.update_option == False:
         raise RequestFormResponseError("No update option but book exists")
@@ -121,10 +123,7 @@ async def process_single_request(engine: AIOEngine, request_form: RequestForm) -
     except KeyError:
         raise RequestFormResponseError("Key extract error")
 
-    url = book.cover
-    book.cover = f"{isbn13}.jpg"
-
-    upload_aws(url, isbn13)
+    upload_aws(book.raw_cover, isbn13)
     book = await engine.save(book)
     return book
 

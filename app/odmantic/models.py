@@ -18,7 +18,8 @@ class Book(Model):
     title: str
     description: Optional[str]
     isbn13: int
-    cover: str
+    cover: Optional[str]
+    raw_cover: Optional[str]
     publisher: str
     price: int
     pub_date: datetime
@@ -35,3 +36,11 @@ class User(Model):
     email: str
     hashed_password: SecretStr
     salt: SecretStr
+
+
+class RequestForm(Model):
+    request_date: datetime
+    response_date: Optional[datetime]
+    isbn: str
+    update_option: bool
+    status_msg: Optional[str]

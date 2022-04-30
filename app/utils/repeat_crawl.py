@@ -13,7 +13,7 @@ def init_repeat_crawl(app: FastAPI):
     """register starup event"""
 
     @app.on_event("startup")
-    @repeat_every(seconds=60)
+    @repeat_every(seconds=180)
     async def bulk_respond():
         mylogger.info("checking db...")
         engine = get_engine()
@@ -22,10 +22,10 @@ def init_repeat_crawl(app: FastAPI):
             RequestForm.response_date == None,
             limit=20,
         )
-        if not rf_list:
-            mylogger.info("checking done")
-        else:
-            num = len(rf_list)
-            for idx, rf in enumerate(rf_list):
-                await respond_single_request(rf.id)
-                mylogger.info(f"{ rf.isbn } ({idx}/{num})")
+        # if not rf_list:
+        #     mylogger.info("checking done")
+        # else:
+        num = len(rf_list)
+        for idx, rf in enumerate(rf_list):
+            await respond_single_request(rf.id)
+            mylogger.info(f"{ rf.isbn } ({idx + 1}/{num})")
