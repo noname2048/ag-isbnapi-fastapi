@@ -1,5 +1,14 @@
 from isbnapi.db.database import Base
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, Enum, ForeignKey
+from sqlalchemy import (
+    Column,
+    Integer,
+    String,
+    Boolean,
+    DateTime,
+    Date,
+    Enum,
+    ForeignKey,
+)
 from datetime import datetime
 import enum
 
@@ -29,12 +38,13 @@ class CoverType(str, enum.Enum):
 
 class DbBook(Base):
     __tablename__ = "books"
-    isbn = Column(String, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True, index=True)
+    isbn = Column(String, unique=True, index=True)
     title = Column(String)
     description = Column(String)
     cover = Column(String)
     cover_type = Column(Enum(CoverType))
     publisher = Column(String)
     price = Column(Integer)
-    pub_date = Column(DateTime)
+    pub_date = Column(Date)
     author = Column(String)

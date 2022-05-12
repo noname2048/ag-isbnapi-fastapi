@@ -1,7 +1,7 @@
 from typing import List
 from fastapi import Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from isbnapi.schemas import MissingBookBase, MissingBookFailDisplay
+from isbnapi.schemas import MissingBookBase, MissingBookFailDisplay, MissingBook
 from isbnapi.db.models import DbMissingBook
 from datetime import datetime
 import re
@@ -29,3 +29,13 @@ def create_missingbook(db: Session, request: MissingBookBase):
 
 def get_all_missingbooks(db: Session):
     return db.query(DbMissingBook).limit(100).all()
+
+
+def get_missingbook_by_id(db: Session, id: int):
+    missingbook = db.query(DbMissingBook).filter(DbMissingBook.id == id).first()
+    if not missingbook:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Missingbook with id {id} not found",
+        )
+    return missingbook
