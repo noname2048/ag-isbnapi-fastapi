@@ -7,11 +7,11 @@ from fastapi import HTTPException, status
 def create_book(db: Session, request: BookBase):
     new_book = DbBook(
         isbn=request.isbn,
-        title=request.isbn,
-        description=request.isbn,
+        title=request.title,
+        description=request.description,
         cover=request.cover,
         cover_type=request.cover_type,
-        pulisher=request.publisher,
+        publisher=request.publisher,
         price=request.price,
         pub_date=request.pub_date,
         author=request.author,

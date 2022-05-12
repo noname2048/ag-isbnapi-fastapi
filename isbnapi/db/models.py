@@ -29,6 +29,7 @@ class DbMissingBook(Base):
     id = Column(Integer, primary_key=True, index=True)
     isbn = Column(String, unique=True, index=True)
     timestamp = Column(DateTime, default=datetime.utcnow)
+    error_message = Column(String)
     book = relationship("DbBook", back_populates="missingbook")
 
 

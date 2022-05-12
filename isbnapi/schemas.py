@@ -1,6 +1,7 @@
 from re import S
 from pydantic import BaseModel, EmailStr, Field
 from datetime import datetime, date
+from typing import Optional
 
 
 class UserBase(BaseModel):
@@ -25,6 +26,7 @@ class MissingBookDisplay(BaseModel):
     id: int
     isbn: str = Field(..., regex=r"\d{13}", example="1234567890123")
     timestamp: datetime
+    error_message: Optional[str]
 
     class Config:
         orm_mode = True
