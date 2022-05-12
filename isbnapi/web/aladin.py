@@ -1,3 +1,4 @@
+from typing import Tuple, Any
 import requests
 from dotenv import dotenv_values
 from isbnapi.web.env import get_setting
@@ -10,7 +11,7 @@ setting = get_setting()
 ALADIN_API_ENDPOINT = "http://www.aladin.co.kr/ttb/api/ItemLookUp.aspx"
 
 
-def get_bookinfo(isbn: str, missingbook_id: int) -> tuple(bool, Any):
+def get_bookinfo(isbn: str, missingbook_id: int) -> Tuple[bool, Any]:
     response = requests.post(
         url=ALADIN_API_ENDPOINT,
         data={

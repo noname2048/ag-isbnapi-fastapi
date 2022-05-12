@@ -1,4 +1,4 @@
-import pymongo
+# import pymongo
 from dotenv import dotenv_values
 from pathlib import Path
 import requests
@@ -13,9 +13,9 @@ DIR = Path(__file__)
 config = dotenv_values(DIR.parent / ".env")
 password = config["MONGO_PASSWORD"]
 db_name = config["MONGO_DB"]
-client = pymongo.MongoClient(
-    f"mongodb+srv://swook:{password}@cluster0.zywhp.mongodb.net/{db_name}?retryWrites=true&w=majority"
-)
+# client = pymongo.MongoClient(
+#     f"mongodb+srv://swook:{password}@cluster0.zywhp.mongodb.net/{db_name}?retryWrites=true&w=majority"
+# )
 col = client.isbn.book
 
 # 알라딘 추가설정

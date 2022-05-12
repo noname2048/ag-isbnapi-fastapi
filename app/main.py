@@ -1,5 +1,4 @@
 from venv import create
-from numpy import disp
 import uvicorn
 
 from fastapi import FastAPI  # ,APIRouter
