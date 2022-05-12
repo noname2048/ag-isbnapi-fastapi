@@ -16,7 +16,8 @@ class DbUser(Base):
 
 class DbMissingBook(Base):
     __tablename__ = "missingbooks"
-    isbn = Column(String, unique=True, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True, index=True)
+    isbn = Column(String, unique=True, index=True)
     timestamp = Column(DateTime, default=datetime.utcnow)
 
 
