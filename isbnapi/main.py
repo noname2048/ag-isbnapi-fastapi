@@ -3,6 +3,7 @@ from isbnapi.auth import authentication
 from isbnapi.routes import user, missing_book, book
 from isbnapi.db import models
 from isbnapi.db.database import engine
+from fastapi.staticfiles import StaticFiles
 
 app = FastAPI()
 
@@ -17,4 +18,5 @@ async def index():
     return "Hello World"
 
 
+app.mount("/bookimages", StaticFiles(directory="isbnapi/bookimages"), name="bookimages")
 models.Base.metadata.create_all(engine)
