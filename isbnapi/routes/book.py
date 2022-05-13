@@ -67,6 +67,7 @@ async def create_book(
 
     bookbase: BookBase = result
     book = db_book.create_book(db, bookbase)
+    bg_task.add_task()
     return book
 
 
