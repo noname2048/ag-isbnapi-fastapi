@@ -1,5 +1,5 @@
 from typing import List
-from fastapi import APIRouter, Depends, HTTPException, status, Response
+from fastapi import APIRouter, Depends, HTTPException, status, Response, BackgroundTasks
 from sqlalchemy.orm import Session
 from isbnapi.db.database import get_db
 from isbnapi.db.models import DbBook, DbMissingBook
@@ -27,7 +27,11 @@ router = APIRouter(prefix="/book", tags=["book"])
         },
     },
 )
-async def create_book(request: MissingBook, db: Session = Depends(get_db)):
+async def create_book(
+    bg_task: BackgroundTasks,
+    request: MissingBook,
+    db: Session = Depends(get_db),
+):
     # check missing book
     missingbook: DbMissingBook = (
         db.query(DbMissingBook)
