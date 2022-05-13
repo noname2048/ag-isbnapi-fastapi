@@ -7,6 +7,7 @@ from isbnapi.schemas import BookDisplayExample, MissingBook, BookBase
 from isbnapi.db import db_book, db_missingbook
 from isbnapi.web import aladin
 import re
+from isbnapi.web import aladin
 
 router = APIRouter(prefix="/book", tags=["book"])
 
@@ -46,7 +47,7 @@ async def create_book(
             detail=f"Check id and isbn",
         )
 
-    book = db.query(DbBook).filter(DbBook.isbn).first()
+    book = db.query(DbBook).filter(DbBook.isbn == request.isbn).first()
     if book:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -67,7 +68,7 @@ async def create_book(
 
     bookbase: BookBase = result
     book = db_book.create_book(db, bookbase)
-    bg_task.add_task()
+    bg_task.add_task(aladin.upload_image, db, book)
     return book
 
 

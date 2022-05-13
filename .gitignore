@@ -22,3 +22,6 @@ tmp/
 
 # database
 isbnapi.db
+
+# images
+**/bookimages/*

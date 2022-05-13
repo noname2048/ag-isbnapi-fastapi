@@ -2,11 +2,16 @@ from typing import Tuple, Any
 import requests
 from dotenv import dotenv_values
 from isbnapi.web.env import get_setting
-from fastapi import HTTPException, status
 import json
 from isbnapi.schemas import BookBase
 from datetime import date, datetime
 from pathlib import Path
+from sqlalchemy.orm import Session
+from isbnapi.db.models import DbBook, CoverType
+import shutil
+from datetime import date, datetime
+from isbnapi.db.database import get_db
+
 
 setting = get_setting()
 ALADIN_API_ENDPOINT = "http://www.aladin.co.kr/ttb/api/ItemLookUp.aspx"
@@ -62,3 +67,34 @@ def get_bookinfo(isbn: str, missingbook_id: int) -> Tuple[bool, Any]:
         return False, f"Keyerror {e.args[0]}"
 
     return True, book_request
+
+
+def upload_image(db: Session, book: DbBook):
+    if not book:
+        return
+
+    if book.cover_type == CoverType.relative:
+        return
+
+    url: str = book.cover
+    response = requests.get(url=url, stream=True)
+
+    if not response.ok:
+        return
+
+    response.raw.decode_content = True
+    image = response.raw
+
+    date_str = date.today().strftime("%y%m%d")
+    filename = f"{book.isbn}_{date_str}.jpg"
+    folder = f"isbnapi/bookimages/"
+    with open(folder + filename, "wb+") as buffer:
+        shutil.copyfileobj(image, buffer)
+
+    book.cover = filename
+    book.cover_type = CoverType.relative
+    db.commit()
+
+    now = datetime.utcnow()
+    with open("isbnapi/bookimages/log.txt", "a+") as buffer:
+        buffer.write(f"{now} - {book.isbn}\n")
