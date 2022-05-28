@@ -39,6 +39,32 @@ class CoverType(str, enum.Enum):
     absolute = "absolute"
 
 
+class DbTempBook(Base):
+    __tablename__ = "tempbook"
+    id = Column(Integer, primary_key=True)
+    isbn = Column(String, unique=True, index=True)
+    timestamp = Column(DateTime, default=datetime.utcnow)
+
+
+class DbBookInfo(Base):
+    __tablename__ = "bookinfo"
+    isbn = Column(String, primary_key=True, index=True)
+    title = Column(String, default="")
+    description = Column(String, default="")
+    cover = Column(String, default="")
+    cover_type = Column(Enum(CoverType), nullable=True, default="")
+    publisher = Column(String, default="")
+    price = Column(Integer, default=0)
+    pub_date = Column(Date, nullable=True, default=None)
+    author = Column(String, default="")
+
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    is_error = Column(Boolean, default=False)
+    error_msg = Column(String, default="")
+
+
 class DbBook(Base):
     __tablename__ = "book"
     id = Column(Integer, primary_key=True, index=True)

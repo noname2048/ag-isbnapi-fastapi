@@ -1,17 +1,55 @@
 from typing import List
-from fastapi import APIRouter, Depends, HTTPException, status, Response, BackgroundTasks
+from fastapi import (
+    APIRouter,
+    Depends,
+    HTTPException,
+    status,
+    Response,
+    BackgroundTasks,
+    Path,
+)
 from sqlalchemy.orm import Session
 from isbnapi.db.database import get_db
-from isbnapi.db.models import DbBook, DbMissingBook
+from isbnapi.db.models import DbBook, DbMissingBook, DbBookInfo, DbTempBook
 from isbnapi.schemas import BookDisplayExample, MissingBook, BookBase
-from isbnapi.db import db_book, db_missingbook
+from isbnapi.db import db_book, db_missingbook, db_tempbook
 from isbnapi.web import aladin
 import re
-from isbnapi.web import aladin
+from isbnapi.schemas import TempBookDisplay, TempBookBase
+from typing import Union
 
 router = APIRouter(prefix="/book", tags=["book"])
 
-# Create book by missingbook
+
+isbn_pattern = re.compile(r"\d{13}")
+
+
+@router.get("s/{isbn}")
+async def get_book_by_isbn(
+    response: Response,
+    bg_tasks: BackgroundTasks,
+    isbn: str = Path(..., regex=r"^[0-9]{13}"),
+    db: Session = Depends(get_db),
+):
+    book = db.query(DbBookInfo).filter(DbBookInfo.isbn == isbn).first()
+    if book:
+        return db_book.get_book_by_isbn(db, isbn)
+
+    tempbook = db.query(DbTempBook).filter(DbTempBook.isbn == isbn).first()
+    if tempbook:
+        response.status_code = status.HTTP_404_NOT_FOUND
+        return response
+
+    tempbook = db_tempbook.create(db, TempBookBase(isbn=isbn))
+    bg_tasks.add(aladin.get_bookinfo_from_aladin, isbn)
+    return tempbook
+
+
+@router.get("s", response_model=List[BookDisplayExample])
+async def get_all_books(db: Session = Depends(get_db)):
+    return db_book.get_all_books(db)
+
+
 @router.post(
     "",
     responses={
@@ -70,22 +108,3 @@ async def create_book(
     book = db_book.create_book(db, bookbase)
     bg_task.add_task(aladin.upload_image, db, book)
     return book
-
-
-# Get all books
-@router.get("s", response_model=List[BookDisplayExample])
-async def get_all_books(db: Session = Depends(get_db)):
-    return db_book.get_all_books(db)
-
-
-isbn_pattern = re.compile(r"\d{13}")
-
-# Get book by isbn
-@router.get("/isbn/{isbn}")
-async def get_book_by_isbn(isbn: str, db: Session = Depends(get_db)):
-    if not isbn_pattern.match(isbn):
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail="Invaild ISBN",
-        )
-    return db_book.get_book_by_isbn(db, isbn)

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Query, Depends, HTTPException, status
+from fastapi import APIRouter, Path, Depends, HTTPException, status
 from isbnapi.schemas import TempBookDisplay
 import re
 from sqlalchemy.orm import Session
@@ -13,7 +13,7 @@ isbn_pattern = re.compile(r"^[0-9]{13}$")
 
 @router.get("s/{isbn}", response_model=TempBookDisplay)
 async def get_tempbook_by_isbn(
-    isbn: Query(regex=r"^[0-9]{13}"), db: Session = Depends(get_db)
+    isbn: Path(regex=r"^[0-9]{13}"), db: Session = Depends(get_db)
 ):
     tempbook = db.query(DbTempBook).filter(DbTempBook.isbn == isbn).first()
     if not tempbook:
