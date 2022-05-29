@@ -1,4 +1,5 @@
 from re import S
+from xmlrpc.client import boolean
 from pydantic import BaseModel, EmailStr, Field
 from datetime import datetime, date
 from typing import Optional
@@ -16,6 +17,12 @@ class UserDisplay(BaseModel):
 
     class Config:
         orm_mode = True
+
+
+class UserPatchBase(BaseModel):
+    username: Optional[str]
+    email: Optional[str]
+    password: Optional[str]
 
 
 class MissingBookBase(BaseModel):
@@ -75,3 +82,31 @@ class BookDisplayExample(BaseModel):
     price: int = Field(..., example="16000")
     pub_date: date = Field(..., example="2020-07-16")
     author: str = Field(..., example="스콧 애덤스 지음, 김인수 옮김")
+
+
+class TempBookBase(BaseModel):
+    isbn: str
+
+
+class TempBookDisplay(BaseModel):
+    id: int
+    isbn: str
+    timestamp: datetime
+
+
+class BookInfoBase(BaseModel):
+    isbn: str
+    title: str
+    description: str
+    cover: str
+    cover_type: str
+    publisher: str
+    price: int
+    pub_date: date
+    author: str
+
+
+class BookInfoErrorBase(BaseModel):
+    isbn: str
+    is_error: bool
+    error_msg: str
