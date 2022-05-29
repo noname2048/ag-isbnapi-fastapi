@@ -105,8 +105,12 @@ class AladinException(Exception):
     pass
 
 
-def get_bookinfo_from_aladin(isbn: str):
-    db: Session = get_db()
+def get_bookinfo_from_aladin(isbn: str, bg):
+    with open("logs.txt", "w+") as f:
+        print("NOT", file=f)
+    db: Session = next(get_db())
+    if db.query(DbBookInfo).filter(DbBookInfo.isbn == isbn).first():
+        return
     try:
         response = requests.post(
             url=ALADIN_API_ENDPOINT,
@@ -153,8 +157,7 @@ def get_bookinfo_from_aladin(isbn: str):
             raise AladinException(detail=f"Keyerror {e.args[0]}")
         bookinfo = db_bookinfo.create_bookinfo(db, bookinfobase)
 
-        bg_tasks = BackgroundTasks()
-        bg_tasks.add_task()
+        bg.add_task(update_relative_bookinfo_image, isbn)
 
         return bookinfo
 
@@ -166,7 +169,9 @@ def get_bookinfo_from_aladin(isbn: str):
 
 
 def update_relative_bookinfo_image(isbn: str):
-    db: Session = get_db()
+    with open("logs.txt", "w+") as f:
+        print("WHAT", file=f)
+    db: Session = next(get_db())
     bookinfo: DbBookInfo = db.query(DbBookInfo).filter(DbBookInfo.isbn == isbn).first()
     if bookinfo.cover_type == CoverType.relative:
         return
@@ -179,7 +184,7 @@ def update_relative_bookinfo_image(isbn: str):
     image = response.raw
 
     date_str = date.today().strftime("%y%m%d")
-    filename = "isbnapi/bookimages/" + f"{isbn.isbn}_{date_str}.jpg"
+    filename = "isbnapi/bookimages/" + f"{isbn}_{date_str}.jpg"
     with open(filename, "wb+") as buffer:
         shutil.copyfileobj(image, buffer)
 
@@ -187,5 +192,5 @@ def update_relative_bookinfo_image(isbn: str):
     bookinfo.cover_type = CoverType.relative
     db.commit()
 
-    with open("isbn/bookimages/log.txt", "a+") as buffer:
+    with open("isbnapi/bookimages/log.txt", "a+") as buffer:
         buffer.write(f"{datetime.utcnow()} - {isbn}")

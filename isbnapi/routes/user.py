@@ -8,7 +8,6 @@ from isbnapi.auth.oauth2 import get_current_user
 from isbnapi.db.models import DbUser
 from isbnapi.db.hashing import Hash
 
-
 router = APIRouter(prefix="/user", tags=["user"])
 
 # Get current user
@@ -18,6 +17,7 @@ async def get_current_user(current_user: DbUser = Depends(get_current_user)):
 
 
 # Create user
+@router.post("", response_model=UserDisplay)  # Create user
 @router.post("", response_model=UserDisplay)
 async def create_user(request: UserBase, db: Session = Depends(get_db)):
     return db_user.create_user(db, request)
@@ -30,9 +30,9 @@ async def get_all_users(db: Session = Depends(get_db)):
 
 
 # Get user by id
-@router.get("s/{id}", response_model=UserDisplay)
+@router.get("s/{username}", response_model=UserDisplay)
 async def get_user_by_username(
-    id: int,
+    username: str,
     db: Session = Depends(get_db),
 ):
     return db_user.get_user_by_id(db, id)

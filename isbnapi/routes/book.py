@@ -17,6 +17,7 @@ from isbnapi.web import aladin
 import re
 from isbnapi.schemas import TempBookDisplay, TempBookBase
 from typing import Union
+from fastapi.responses import JSONResponse
 
 router = APIRouter(prefix="/book", tags=["book"])
 
@@ -33,16 +34,17 @@ async def get_book_by_isbn(
 ):
     book = db.query(DbBookInfo).filter(DbBookInfo.isbn == isbn).first()
     if book:
-        return db_book.get_book_by_isbn(db, isbn)
+        return book
 
     tempbook = db.query(DbTempBook).filter(DbTempBook.isbn == isbn).first()
     if tempbook:
-        response.status_code = status.HTTP_404_NOT_FOUND
+        response = Response(content="", status_code=status.HTTP_204_NO_CONTENT)
         return response
 
     tempbook = db_tempbook.create(db, TempBookBase(isbn=isbn))
-    bg_tasks.add(aladin.get_bookinfo_from_aladin, isbn)
-    return tempbook
+    bg_tasks.add_task(aladin.get_bookinfo_from_aladin, isbn, bg_tasks)
+    response = Response(content="", status_code=status.HTTP_204_NO_CONTENT)
+    return response
 
 
 @router.get("s", response_model=List[BookDisplayExample])
