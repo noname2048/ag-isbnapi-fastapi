@@ -8,6 +8,7 @@ from fastapi import (
     BackgroundTasks,
     Path,
 )
+from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from isbnapi.db.database import get_db
 from isbnapi.db.models import DbBook, DbMissingBook, DbBookInfo, DbTempBook
@@ -25,7 +26,7 @@ router = APIRouter(prefix="/book", tags=["book"])
 isbn_pattern = re.compile(r"\d{13}")
 
 
-@router.get("s/{isbn}")
+@router.get("s/{isbn}", responses={200, 201, 404})
 async def get_book_by_isbn(
     response: Response,
     bg_tasks: BackgroundTasks,
@@ -34,17 +35,17 @@ async def get_book_by_isbn(
 ):
     book = db.query(DbBookInfo).filter(DbBookInfo.isbn == isbn).first()
     if book:
-        return book
+        return
 
     tempbook = db.query(DbTempBook).filter(DbTempBook.isbn == isbn).first()
-    if tempbook:
-        response = Response(content="", status_code=status.HTTP_204_NO_CONTENT)
-        return response
+    if not tempbook:
+        tempbook = db_tempbook.create(db, TempBookBase(isbn=isbn))
 
-    tempbook = db_tempbook.create(db, TempBookBase(isbn=isbn))
     bg_tasks.add_task(aladin.get_bookinfo_from_aladin, isbn, bg_tasks)
-    response = Response(content="", status_code=status.HTTP_204_NO_CONTENT)
-    return response
+    return JSONResponse(
+        content={"type": "tempbook", "book": tempbook.json()},
+        status_code=status.HTTP_201_CREATED,
+    )
 
 
 @router.get("s", response_model=List[BookDisplayExample])
