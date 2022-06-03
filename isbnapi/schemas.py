@@ -2,7 +2,7 @@ from re import S
 from xmlrpc.client import boolean
 from pydantic import BaseModel, EmailStr, Field
 from datetime import datetime, date
-from typing import Optional
+from typing import Optional, Union, List
 
 
 class UserBase(BaseModel):
@@ -104,6 +104,23 @@ class BookInfoBase(BaseModel):
     price: int
     pub_date: date
     author: str
+
+
+class BookInfoDisplay(BookInfoBase):
+    id: int
+
+    created_at: date
+    updated_at: Union[date, None]
+
+    is_error: bool
+    error_msg: Union[str, None]
+
+
+class BookInfoDisplayV2(BaseModel):
+    type: str
+    error_detail: Union[str, None] = None
+    requested_info: Union[TempBookDisplay, None] = None
+    info: Union[BookInfoDisplay, None] = None
 
 
 class BookInfoErrorBase(BaseModel):
