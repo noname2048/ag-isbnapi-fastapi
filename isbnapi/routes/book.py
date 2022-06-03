@@ -11,13 +11,14 @@ from fastapi import (
 from sqlalchemy.orm import Session
 from isbnapi.db.database import get_db
 from isbnapi.db.models import DbBook, DbMissingBook, DbBookInfo, DbTempBook
-from isbnapi.schemas import BookDisplayExample, MissingBook, BookBase
+from isbnapi.schemas import BookDisplayExample, BookInfoDisplay, MissingBook, BookBase
 from isbnapi.db import db_book, db_missingbook, db_tempbook
 from isbnapi.web import aladin
 import re
 from isbnapi.schemas import TempBookDisplay, TempBookBase
 from typing import Union
 from fastapi.responses import JSONResponse
+from fastapi.encoders import jsonable_encoder
 
 router = APIRouter(prefix="/book", tags=["book"])
 
@@ -25,25 +26,28 @@ router = APIRouter(prefix="/book", tags=["book"])
 isbn_pattern = re.compile(r"\d{13}")
 
 
-@router.get("s/{isbn}")
+@router.get("s/{isbn}", response_model=BookInfoDisplay)
 async def get_book_by_isbn(
     response: Response,
     bg_tasks: BackgroundTasks,
     isbn: str = Path(..., regex=r"^[0-9]{13}"),
     db: Session = Depends(get_db),
 ):
-    book = db.query(DbBookInfo).filter(DbBookInfo.isbn == isbn).first()
+    book: DbBookInfo = db.query(DbBookInfo).filter(DbBookInfo.isbn == isbn).first()
     if book:
         return book
 
     tempbook = db.query(DbTempBook).filter(DbTempBook.isbn == isbn).first()
-    if tempbook:
-        response = Response(content="", status_code=status.HTTP_204_NO_CONTENT)
-        return response
+    if not tempbook:
+        tempbook = db_tempbook.create(db, TempBookBase(isbn=isbn))
+    tempbook = TempBookDisplay(
+        id=tempbook.id, isbn=tempbook.isbn, timestamp=tempbook.timestamp
+    )
 
-    tempbook = db_tempbook.create(db, TempBookBase(isbn=isbn))
     bg_tasks.add_task(aladin.get_bookinfo_from_aladin, isbn, bg_tasks)
-    response = Response(content="", status_code=status.HTTP_204_NO_CONTENT)
+    response = JSONResponse(
+        content=jsonable_encoder(tempbook), status_code=status.HTTP_202_ACCEPTED
+    )
     return response
 
 
