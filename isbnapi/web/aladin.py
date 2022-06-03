@@ -102,7 +102,8 @@ def upload_image(db: Session, book: DbBook):
 
 
 class AladinException(Exception):
-    pass
+    def __init__(self, detail):
+        self.detail = detail
 
 
 def get_bookinfo_from_aladin(isbn: str, bg):
