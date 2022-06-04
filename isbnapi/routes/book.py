@@ -8,6 +8,7 @@ from fastapi import (
     BackgroundTasks,
     Path,
 )
+from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from isbnapi.db.database import get_db
 from isbnapi.db.models import DbBook, DbMissingBook, DbBookInfo, DbTempBook
@@ -35,7 +36,7 @@ async def get_book_by_isbn(
 ):
     book: DbBookInfo = db.query(DbBookInfo).filter(DbBookInfo.isbn == isbn).first()
     if book:
-        return book
+        return
 
     tempbook = db.query(DbTempBook).filter(DbTempBook.isbn == isbn).first()
     if not tempbook:
