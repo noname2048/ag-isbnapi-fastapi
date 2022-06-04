@@ -27,11 +27,14 @@ router = APIRouter(prefix="/book", tags=["book"])
 isbn_pattern = re.compile(r"\d{13}")
 
 
-@router.get("s/{isbn}", response_model=BookInfoDisplay)
+@router.get(
+    "s/{isbn}",
+    responses={200: {"model": BookInfoDisplay}, 202: {"model": TempBookDisplay}},
+)
 async def get_book_by_isbn(
     response: Response,
     bg_tasks: BackgroundTasks,
-    isbn: str = Path(..., regex=r"^[0-9]{13}"),
+    isbn: str = Path(..., regex=r"^[0-9]{13}", example="9791158390983"),
     db: Session = Depends(get_db),
 ):
     book: DbBookInfo = db.query(DbBookInfo).filter(DbBookInfo.isbn == isbn).first()
@@ -49,6 +52,7 @@ async def get_book_by_isbn(
     response = JSONResponse(
         content=jsonable_encoder(tempbook), status_code=status.HTTP_202_ACCEPTED
     )
+    response = Response(content=tempbook, status_code=status.HTTP_202_ACCEPTED)
     return response
 
 
