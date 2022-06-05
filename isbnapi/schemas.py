@@ -95,7 +95,7 @@ class TempBookDisplay(BaseModel):
 
 
 class BookInfoBase(BaseModel):
-    isbn: str
+    isbn: str = Field(..., example="9791161340463")
     title: str
     description: str
     cover: str
