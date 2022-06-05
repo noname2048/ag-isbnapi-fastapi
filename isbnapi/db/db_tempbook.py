@@ -9,5 +9,6 @@ def create(db: Session, request: TempBookBase):
     )
     db.add(new_tempbook)
     db.commit()
+    db.refresh(new_tempbook)
 
     return new_tempbook
