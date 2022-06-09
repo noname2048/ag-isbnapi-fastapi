@@ -13,10 +13,10 @@ from sqlalchemy.orm import Session
 from isbnapi.db.database import get_db
 from isbnapi.db.models import DbBook, DbMissingBook, DbBookInfo, DbTempBook
 from isbnapi.schemas import BookDisplayExample, BookInfoDisplay, MissingBook, BookBase
-from isbnapi.db import db_book, db_missingbook, db_tempbook
+from isbnapi.db import db_book, db_missingbook, db_tempbook, db_bookinfo
 from isbnapi.web import aladin
 import re
-from isbnapi.schemas import TempBookDisplay, TempBookBase
+from isbnapi.schemas import TempBookDisplay, TempBookBase, BookInfoBase
 from typing import Union
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
@@ -39,26 +39,21 @@ async def get_book_by_isbn(
 ):
     book: DbBookInfo = db.query(DbBookInfo).filter(DbBookInfo.isbn == isbn).first()
     if book:
-        return
+        return book
 
     tempbook = db.query(DbTempBook).filter(DbTempBook.isbn == isbn).first()
     if not tempbook:
         tempbook = db_tempbook.create(db, TempBookBase(isbn=isbn))
-    tempbook = TempBookDisplay(
-        id=tempbook.id, isbn=tempbook.isbn, timestamp=tempbook.timestamp
-    )
 
     bg_tasks.add_task(aladin.get_bookinfo_from_aladin, isbn, bg_tasks)
-    response = JSONResponse(
-        content=jsonable_encoder(tempbook), status_code=status.HTTP_202_ACCEPTED
-    )
-    response = Response(content=tempbook, status_code=status.HTTP_202_ACCEPTED)
-    return response
+
+    response.status_code = status.HTTP_202_ACCEPTED
+    return tempbook
 
 
-@router.get("s", response_model=List[BookDisplayExample])
+@router.get("s", response_model=List[BookInfoDisplay])
 async def get_all_books(db: Session = Depends(get_db)):
-    return db_book.get_all_books(db)
+    return db_bookinfo.get_all_books(db)
 
 
 @router.post(
