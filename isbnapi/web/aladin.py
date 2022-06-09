@@ -127,7 +127,8 @@ def get_bookinfo_from_aladin(isbn: str, bg):
         if response.status_code != 200:
             raise AladinException(detail="Aladin not ok")
 
-        text: str = response.text[:-1]
+        if response.text.endswith(";"):
+            text: str = response.text[:-1]
         try:
             bookjson = json.loads(text, strict=False)
         except json.JSONDecodeError:
@@ -185,8 +186,8 @@ def update_relative_bookinfo_image(isbn: str):
     image = response.raw
 
     date_str = date.today().strftime("%y%m%d")
-    filename = "isbnapi/bookimages/" + f"{isbn}_{date_str}.jpg"
-    with open(filename, "wb+") as buffer:
+    filename = "/bookimages/" + f"{isbn}_{date_str}.jpg"
+    with open(f"isbnapi/{filename}", "wb+") as buffer:
         shutil.copyfileobj(image, buffer)
 
     bookinfo.cover = filename
@@ -194,4 +195,4 @@ def update_relative_bookinfo_image(isbn: str):
     db.commit()
 
     with open("isbnapi/bookimages/log.txt", "a+") as buffer:
-        buffer.write(f"{datetime.utcnow()} - {isbn}")
+        buffer.write(f"{datetime.utcnow()} - {isbn}\n")

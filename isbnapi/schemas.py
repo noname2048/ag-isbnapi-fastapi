@@ -101,19 +101,32 @@ class BookInfoBase(BaseModel):
     cover: str
     cover_type: str
     publisher: str
-    price: int
+    price: float
     pub_date: date
     author: str
 
 
-class BookInfoDisplay(BookInfoBase):
+class BookInfoDisplay(BaseModel):
     id: int
 
+    isbn: str = Field(..., example="9791161340463")
+    title: str
+    description: str
+    cover: str
+    cover_type: str
+    publisher: str
+    price: int
+    pub_date: date
+    author: str
+
     created_at: date
-    updated_at: Union[date, None]
+    updated_at: date
 
     is_error: bool
-    error_msg: Union[str, None]
+    error_msg: Optional[str]
+
+    class Config:
+        orm_mode = True
 
 
 class BookInfoDisplayV2(BaseModel):
