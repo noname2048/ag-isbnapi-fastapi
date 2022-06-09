@@ -48,7 +48,8 @@ class DbTempBook(Base):
 
 class DbBookInfo(Base):
     __tablename__ = "bookinfo"
-    isbn = Column(String, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True)
+    isbn = Column(String, index=True, unique=True, nullable=False)
     title = Column(String, default="")
     description = Column(String, default="")
     cover = Column(String, default="")
