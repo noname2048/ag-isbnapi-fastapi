@@ -32,3 +32,7 @@ def create_error_bookinfo(db: Session, request: BookInfoErrorBase):
     db.commit()
     db.refresh(error_bookinfo)
     return error_bookinfo
+
+
+def get_all_books(db: Session):
+    return db.query(DbBookInfo).all()

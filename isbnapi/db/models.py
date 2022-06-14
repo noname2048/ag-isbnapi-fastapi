@@ -48,21 +48,22 @@ class DbTempBook(Base):
 
 class DbBookInfo(Base):
     __tablename__ = "bookinfo"
-    isbn = Column(String, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True)
+    isbn = Column(String, index=True, unique=True, nullable=False)
     title = Column(String, default="")
     description = Column(String, default="")
     cover = Column(String, default="")
-    cover_type = Column(Enum(CoverType), nullable=True, default="")
+    cover_type = Column(Enum(CoverType), default=None)
     publisher = Column(String, default="")
     price = Column(Integer, default=0)
-    pub_date = Column(Date, nullable=True, default=None)
+    pub_date = Column(Date, default=None)
     author = Column(String, default="")
 
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     is_error = Column(Boolean, default=False)
-    error_msg = Column(String, default="")
+    error_msg = Column(String)
 
 
 class DbBook(Base):
