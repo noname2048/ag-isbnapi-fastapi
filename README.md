@@ -16,4 +16,4 @@
   3. HTTP endpoint를 따로 만들거나(HTTP 최대 300초 대기 가능)
 
 ## 시도해보려고 하고 있는 기술
-- graphql 도입하나
+- graphql 도입 해보기
